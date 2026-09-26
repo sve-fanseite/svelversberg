@@ -1,0 +1,150 @@
+---
+import Base from '../layouts/Base.astro';
+import Notice from '../components/Notice.astro';
+import SourceNote from '../components/SourceNote.astro';
+import { getSiteData } from '../lib/data.ts';
+import { NEWS_FEEDS } from '../config.ts';
+import { formatDay, TZ } from '../lib/time.ts';
+
+const data = await getSiteData();
+const items = data.news?.data ?? [];
+const sources = [...new Set(items.map((i) => i.sourceId))].map((id) => {
+  const feed = NEWS_FEEDS.find((f) => f.id === id);
+  return { id, label: feed?.label ?? id, name: feed?.name ?? id };
+});
+
+// Nach Monat gruppieren (deutsche Zeit)
+const monthFmt = new Intl.DateTimeFormat('de-DE', { timeZone: TZ, month: 'long', year: 'numeric' });
+const groups: { label: string; items: typeof items }[] = [];
+for (const i of items) {
+  const label = i.date ? monthFmt.format(new Date(i.date)) : 'Ohne Datum';
+  const last = groups[groups.length - 1];
+  if (last?.label === label) last.items.push(i);
+  else groups.push({ label, items: [i] });
+}
+const chip =
+  'rounded-full border border-line px-3.5 py-1.5 text-sm font-semibold text-muted transition-colors hover:text-ink aria-pressed:border-ink aria-pressed:bg-ink aria-pressed:text-bg';
+---
+
+<Base title="News" description="Aktuelle Meldungen rund um die SV 07 Elversberg – Überschriften mit Link zur Originalquelle.">
+  <div class="mx-auto max-w-4xl px-4 pt-10">
+    <p class="eyebrow">Neuigkeiten</p>
+    <h1 class="h-display mt-2 text-5xl sm:text-6xl">News</h1>
+    <p class="mt-3 max-w-2xl text-muted">
+      Die neuesten Meldungen rund um die SVE. Wir zeigen nur Überschrift und Datum, den vollständigen Beitrag liest du direkt bei der
+      jeweiligen Quelle.
+    </p>
+
+    {
+      items.length > 0 ? (
+        <>
+          <div class="mt-8 space-y-3" data-news-tools hidden>
+            <label class="relative block">
+              <span class="sr-only">News durchsuchen</span>
+              <svg class="pointer-events-none absolute left-3 top-1/2 size-5 -translate-y-1/2 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <circle cx="11" cy="11" r="7" />
+                <path d="m20 20-3.5-3.5" />
+              </svg>
+              <input
+                type="search"
+                placeholder="Suchen, z. B. Testspiel oder U21"
+                class="w-full rounded-xl border border-line bg-surface py-3 pl-11 pr-4 text-base placeholder:text-muted"
+                data-news-search
+                autocomplete="off"
+              />
+            </label>
+            {sources.length > 1 && (
+              <div class="flex flex-wrap gap-2" role="group" aria-label="Nach Quelle filtern">
+                <button type="button" class={chip} data-source="alle" aria-pressed="true">
+                  Alle Quellen
+                </button>
+                {sources.map((s) => (
+                  <button type="button" class={chip} data-source={s.id} aria-pressed="false">
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+            )}
+            <p class="text-sm text-muted" aria-live="polite" data-news-count></p>
+          </div>
+
+          <div class="mt-8 space-y-10" data-news-list>
+            {groups.map((g) => (
+              <section data-news-group>
+                <h2 class="eyebrow mb-3">{g.label}</h2>
+                <ul class="divide-y divide-line rounded-2xl border border-line bg-surface">
+                  {g.items.map((i) => (
+                    <li data-source={i.sourceId} data-title={i.title.toLowerCase()}>
+                      <a href={i.link} rel="noopener" target="_blank" class="group flex items-start gap-4 p-4 no-underline hover:bg-surface-2 sm:p-5">
+                        <span class="min-w-0 flex-1">
+                          <span class="flex flex-wrap items-center gap-x-2 text-xs text-muted">
+                            <span class="font-semibold uppercase tracking-wider text-accent-ink">
+                              {sources.find((s) => s.id === i.sourceId)?.label ?? i.sourceName}
+                            </span>
+                            {i.date && <time datetime={i.date}>{formatDay(new Date(i.date))}</time>}
+                          </span>
+                          <span class="mt-1 block font-semibold leading-snug group-hover:underline sm:text-lg">{i.title}</span>
+                        </span>
+                        <span class="mt-5 shrink-0 text-muted" aria-hidden="true">
+                          ↗
+                        </span>
+                        <span class="sr-only">(öffnet {i.sourceName} in neuem Tab)</span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ))}
+          </div>
+          <p class="mt-6 hidden text-muted" data-news-empty>
+            Keine Treffer. Versuch es mit einem anderen Suchbegriff.
+          </p>
+          {data.news && <SourceNote source={sources.map((s) => s.name).join(', ')} asOf={data.news.asOf} stale={data.news.stale} />}
+        </>
+      ) : (
+        <div class="mt-8">
+          <Notice title="Keine News verfügbar">Die News-Quellen haben gerade nicht geantwortet. Schau später noch einmal vorbei.</Notice>
+        </div>
+      )
+    }
+  </div>
+</Base>
+
+<script>
+  // Suche und Quellenfilter. Ohne JavaScript werden einfach alle News gezeigt.
+  const tools = document.querySelector<HTMLElement>('[data-news-tools]');
+  const list = document.querySelector<HTMLElement>('[data-news-list]');
+  if (tools && list) {
+    tools.hidden = false;
+    const search = tools.querySelector<HTMLInputElement>('[data-news-search]')!;
+    const count = tools.querySelector<HTMLElement>('[data-news-count]')!;
+    const empty = document.querySelector<HTMLElement>('[data-news-empty]');
+    const items = [...list.querySelectorAll<HTMLElement>('li[data-title]')];
+    let source = 'alle';
+
+    const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+    const apply = () => {
+      const words = norm(search.value.trim()).split(/\s+/).filter(Boolean);
+      let visible = 0;
+      for (const li of items) {
+        const title = norm(li.dataset.title ?? '');
+        const show = (source === 'alle' || li.dataset.source === source) && words.every((w) => title.includes(w));
+        li.hidden = !show;
+        if (show) visible++;
+      }
+      for (const g of list.querySelectorAll<HTMLElement>('[data-news-group]')) {
+        g.hidden = !g.querySelector('li:not([hidden])');
+      }
+      empty?.classList.toggle('hidden', visible > 0);
+      count.textContent = words.length || source !== 'alle' ? `${visible} von ${items.length} Meldungen` : '';
+    };
+    search.addEventListener('input', apply);
+    for (const btn of tools.querySelectorAll<HTMLButtonElement>('[data-source]')) {
+      btn.addEventListener('click', () => {
+        source = btn.dataset.source!;
+        for (const b of tools.querySelectorAll('[data-source]')) b.setAttribute('aria-pressed', String(b === btn));
+        apply();
+      });
+    }
+  }
+</script>

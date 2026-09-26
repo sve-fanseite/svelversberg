@@ -1,0 +1,219 @@
+---
+import Base from '../layouts/Base.astro';
+import Notice from '../components/Notice.astro';
+import SourceNote from '../components/SourceNote.astro';
+import { getSiteData } from '../lib/data.ts';
+import { computeTable, finalScore, kickoff, shortLabel, type OldbMatch } from '../lib/openligadb.ts';
+import { PERIOD_LABELS, teamStats } from '../lib/stats.ts';
+import { formatDay } from '../lib/time.ts';
+
+const data = await getSiteData();
+const teamId = data.team?.data.teamId ?? null;
+const league = data.league?.data ?? null;
+const matches = data.matches?.data ?? [];
+const stats = teamId ? teamStats(matches, teamId) : null;
+
+const rowFor = (mode: 'all' | 'home' | 'away') => (teamId ? computeTable(matches, mode).find((r) => r.teamInfoId === teamId) : undefined);
+const bilanz = [
+  { label: 'Gesamt', row: rowFor('all') },
+  { label: 'Heim', row: rowFor('home') },
+  { label: 'Auswärts', row: rowFor('away') },
+];
+const ppg = (p: number, n: number) => (n ? (p / n).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '–');
+const perGame = (g: number, n: number) => (n ? (g / n).toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) : '–');
+
+function describe(m: OldbMatch) {
+  const s = finalScore(m)!;
+  const home = m.team1.teamId === teamId;
+  const opp = home ? m.team2 : m.team1;
+  return `${home ? s.home : s.away}:${home ? s.away : s.home} ${home ? 'gegen' : 'bei'} ${shortLabel(opp)}`;
+}
+const maxScorer = stats?.scorers[0]?.goals ?? 0;
+const maxPeriod = stats ? Math.max(1, ...stats.goalsForByPeriod, ...stats.goalsAgainstByPeriod) : 1;
+const scorerGoals = stats?.scorers.reduce((a, s) => a + s.goals, 0) ?? 0;
+---
+
+<Base
+  title="Statistiken"
+  description={`Statistiken der SV 07 Elversberg in der Saison ${league?.seasonLabel ?? ''}: Torschützen, Heim- und Auswärtsbilanz, Tore nach Spielminute.`}
+>
+  <div class="mx-auto max-w-5xl px-4 pt-10">
+    <p class="eyebrow">{league ? `${league.name} · Saison ${league.seasonLabel}` : 'Saison'}</p>
+    <h1 class="h-display mt-2 text-5xl sm:text-6xl">Statistiken</h1>
+
+    {
+      !stats || stats.played === 0 ? (
+        <div class="mt-8">
+          {data.matches ? <Notice title="Noch keine Statistik">Sobald das erste Spiel beendet ist, erscheinen hier die Zahlen.</Notice> : <Notice />}
+        </div>
+      ) : (
+        <>
+          <section class="mt-8" aria-labelledby="kz-heading">
+            <h2 id="kz-heading" class="sr-only">Kennzahlen</h2>
+            <dl class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {[
+                { label: 'Tore', value: stats.goalsFor, sub: `${perGame(stats.goalsFor, stats.played)} pro Spiel` },
+                { label: 'Gegentore', value: stats.goalsAgainst, sub: `${perGame(stats.goalsAgainst, stats.played)} pro Spiel` },
+                { label: 'Zu null gespielt', value: stats.cleanSheets, sub: `von ${stats.played} Spielen` },
+                { label: 'Ohne eigenes Tor', value: stats.failedToScore, sub: `von ${stats.played} Spielen` },
+              ].map((k) => (
+                <div class="card p-4">
+                  <dt class="text-xs font-semibold uppercase tracking-wider text-muted">{k.label}</dt>
+                  <dd class="mt-1 font-display text-5xl font-bold leading-none tabular-nums">{k.value}</dd>
+                  <dd class="mt-1 text-xs text-muted">{k.sub}</dd>
+                </div>
+              ))}
+            </dl>
+            <div class="mt-3 grid gap-3 sm:grid-cols-2">
+              {stats.biggestWin && (
+                <p class="card p-4 text-sm">
+                  <span class="block text-xs font-semibold uppercase tracking-wider text-muted">Höchster Sieg</span>
+                  <span class="mt-1 block text-lg font-semibold">{describe(stats.biggestWin.match)}</span>
+                  <span class="text-muted">
+                    {stats.biggestWin.match.group?.groupName}, {formatDay(kickoff(stats.biggestWin.match))}
+                  </span>
+                </p>
+              )}
+              {stats.biggestLoss && (
+                <p class="card p-4 text-sm">
+                  <span class="block text-xs font-semibold uppercase tracking-wider text-muted">Höchste Niederlage</span>
+                  <span class="mt-1 block text-lg font-semibold">{describe(stats.biggestLoss.match)}</span>
+                  <span class="text-muted">
+                    {stats.biggestLoss.match.group?.groupName}, {formatDay(kickoff(stats.biggestLoss.match))}
+                  </span>
+                </p>
+              )}
+            </div>
+          </section>
+          <section class="mt-12" aria-labelledby="bilanz-heading">
+            <h2 id="bilanz-heading" class="h-display text-3xl sm:text-4xl">Heim- und Auswärtsbilanz</h2>
+            <div class="mt-4 grid gap-3 md:grid-cols-3">
+              {bilanz.map(({ label, row }) => (
+                <div class:list={['card p-5', label === 'Gesamt' && 'border-accent']}>
+                  <h3 class="eyebrow">{label}</h3>
+                  {row && row.matches > 0 ? (
+                    <>
+                      <p class="mt-2 font-display text-4xl font-bold tabular-nums">
+                        {row.points} <span class="text-lg font-semibold text-muted">Pkt.</span>
+                      </p>
+                      <p class="text-sm text-muted">{ppg(row.points, row.matches)} Punkte pro Spiel</p>
+                      <dl class="mt-4 grid grid-cols-4 gap-2 border-t border-line pt-3 text-center text-sm">
+                        <div>
+                          <dt class="text-xs text-muted">Sp.</dt>
+                          <dd class="font-semibold tabular-nums">{row.matches}</dd>
+                        </div>
+                        <div>
+                          <dt class="text-xs text-muted">S</dt>
+                          <dd class="font-semibold tabular-nums">{row.won}</dd>
+                        </div>
+                        <div>
+                          <dt class="text-xs text-muted">U</dt>
+                          <dd class="font-semibold tabular-nums">{row.draw}</dd>
+                        </div>
+                        <div>
+                          <dt class="text-xs text-muted">N</dt>
+                          <dd class="font-semibold tabular-nums">{row.lost}</dd>
+                        </div>
+                      </dl>
+                      <p class="mt-3 text-sm">
+                        Tore <strong class="tabular-nums">{row.goals}:{row.opponentGoals}</strong>
+                      </p>
+                    </>
+                  ) : (
+                    <p class="mt-2 text-sm text-muted">Noch kein Spiel.</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+          <section class="mt-12" aria-labelledby="ts-heading">
+            <h2 id="ts-heading" class="h-display text-3xl sm:text-4xl">Torschützen</h2>
+            {stats.scorers.length > 0 ? (
+              <ol class="card mt-4 divide-y divide-line">
+                {stats.scorers.map((s, i) => (
+                  <li class="flex items-center gap-3 px-4 py-3 sm:px-5">
+                    <span class="w-6 shrink-0 text-right text-sm text-muted tabular-nums">
+                      {i > 0 && stats.scorers[i - 1].goals === s.goals ? '' : `${i + 1}.`}
+                    </span>
+                    <span class="min-w-0 flex-1">
+                      <span class="block truncate font-semibold">{s.name}</span>
+                      <span class="mt-1 block h-1.5 rounded-full bg-surface-2" aria-hidden="true">
+                        <span class="block h-full rounded-full bg-accent" style={`width:${(s.goals / maxScorer) * 100}%`}></span>
+                      </span>
+                    </span>
+                    <span class="shrink-0 text-right">
+                      <span class="font-display text-2xl font-bold tabular-nums">{s.goals}</span>
+                      <span class="sr-only">{s.goals === 1 ? 'Tor' : 'Tore'}</span>
+                      {s.penalties > 0 && <span class="block text-xs text-muted">davon {s.penalties} Elfm.</span>}
+                    </span>
+                  </li>
+                ))}
+                {stats.ownGoalsByOpponents > 0 && (
+                  <li class="flex items-center justify-between px-4 py-3 text-sm text-muted sm:px-5">
+                    <span>Eigentore des Gegners</span>
+                    <span class="font-semibold tabular-nums">{stats.ownGoalsByOpponents}</span>
+                  </li>
+                )}
+              </ol>
+            ) : (
+              <div class="mt-4">
+                <Notice title="Keine Torschützen eingetragen">In OpenLigaDB sind für diese Saison noch keine Torschützen erfasst.</Notice>
+              </div>
+            )}
+            {stats.incompleteMatches.length > 0 ? (
+              <p class="mt-3 text-sm text-muted">
+                <span aria-hidden="true">ℹ </span>
+                Die Torschützen trägt die OpenLigaDB-Community ein. Bei {stats.incompleteMatches.length}{' '}
+                {stats.incompleteMatches.length === 1 ? 'Spiel fehlen' : 'Spielen fehlen'} noch Angaben (
+                {stats.incompleteMatches.map((m) => `${m.group?.groupName ?? ''}: ${describe(m)}`).join('; ')}), deshalb ergibt die Liste
+                zusammen {scorerGoals + stats.ownGoalsByOpponents} statt {stats.goalsFor} Tore.
+              </p>
+            ) : (
+              <p class="mt-3 text-sm text-muted">Alle {stats.goalsFor} Tore sind mit Torschützen erfasst.</p>
+            )}
+          </section>
+          <section class="mt-12" aria-labelledby="zeit-heading">
+            <h2 id="zeit-heading" class="h-display text-3xl sm:text-4xl">Wann fallen die Tore?</h2>
+            <p class="mt-2 text-sm text-muted">Tore und Gegentore nach Spielminute, nur Treffer mit eingetragener Minute.</p>
+            <div class="card mt-4 p-4 sm:p-6">
+              <table class="w-full text-sm">
+                <caption class="sr-only">Tore und Gegentore nach Spielminute</caption>
+                <thead>
+                  <tr class="text-left text-xs text-muted">
+                    <th scope="col" class="w-20 pb-2 font-medium">Minute</th>
+                    <th scope="col" class="pb-2 font-medium">Tore</th>
+                    <th scope="col" class="pb-2 pl-3 font-medium">Gegentore</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {PERIOD_LABELS.map((label, i) => (
+                    <tr class:list={[i === 3 && 'border-t-2 border-dashed border-line']}>
+                      <th scope="row" class="py-2 pr-2 text-left font-medium tabular-nums">{label}</th>
+                      {[stats.goalsForByPeriod[i], stats.goalsAgainstByPeriod[i]].map((v, j) => (
+                        <td class:list={['py-2', j === 1 && 'pl-3']} title={`${label}. Minute: ${v} ${j === 0 ? (v === 1 ? 'Tor' : 'Tore') : v === 1 ? 'Gegentor' : 'Gegentore'}`}>
+                          <span class="flex items-center gap-2">
+                            <span
+                              class:list={['block h-4 rounded-r', j === 0 ? 'bg-accent' : 'bg-draw', v === 0 && 'hidden']}
+                              style={`width:${(v / maxPeriod) * 100}%`}
+                              aria-hidden="true"
+                            ></span>
+                            <span class="font-semibold tabular-nums">{v}</span>
+                          </span>
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <p class="mt-3 text-xs text-muted">Die gestrichelte Linie markiert die Halbzeit.</p>
+            </div>
+          </section>
+
+          {data.matches && (
+            <SourceNote source="eigene Berechnung aus den Spieldaten von OpenLigaDB" asOf={data.matches.asOf} stale={data.matches.stale} />
+          )}
+        </>
+      )
+    }
+  </div>
+</Base>
