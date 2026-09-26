@@ -58,3 +58,25 @@ test('Tore nach Zeitraum und Erkennung unvollständiger Spiele', () => {
   assert.deepEqual(s.goalsAgainstByPeriod, [0, 2, 0, 1, 0, 0]);
   assert.deepEqual(s.incompleteMatches.map((m) => m.matchID), [4]);
 });
+
+test('Schreibvarianten eines Spielers werden zusammengeführt', async () => {
+  const { mergeScorers } = await import('../src/lib/stats.ts');
+  const merged = mergeScorers([
+    { name: 'M. Krattenmacher', goals: 3, penalties: 0 },
+    { name: 'D. Mokwa', goals: 1, penalties: 0 },
+    { name: 'David Mokwa Ntusu', goals: 1, penalties: 1 },
+    { name: 'L. Petkov', goals: 1, penalties: 0 },
+    { name: 'Lukas P.', goals: 1, penalties: 0 },
+    { name: 'Max Muster', goals: 1, penalties: 0 },
+    { name: 'M. Muster', goals: 1, penalties: 0 },
+    { name: 'Moritz Muster', goals: 1, penalties: 0 },
+  ], { 'Lukas P.': 'L. Petkov' });
+  assert.deepEqual(merged, [
+    { name: 'M. Krattenmacher', goals: 3, penalties: 0 },
+    { name: 'David Mokwa Ntusu', goals: 2, penalties: 1 },
+    { name: 'L. Petkov', goals: 2, penalties: 0 },
+    { name: 'M. Muster', goals: 1, penalties: 0 }, // mehrdeutig (Max/Moritz) → bleibt getrennt
+    { name: 'Max Muster', goals: 1, penalties: 0 },
+    { name: 'Moritz Muster', goals: 1, penalties: 0 },
+  ]);
+});

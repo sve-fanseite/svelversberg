@@ -6,12 +6,14 @@ import { getSiteData } from '../lib/data.ts';
 import { computeTable, finalScore, kickoff, shortLabel, type OldbMatch } from '../lib/openligadb.ts';
 import { PERIOD_LABELS, teamStats } from '../lib/stats.ts';
 import { formatDay } from '../lib/time.ts';
+import namen from '../data/torschuetzen-namen.json';
 
 const data = await getSiteData();
 const teamId = data.team?.data.teamId ?? null;
 const league = data.league?.data ?? null;
 const matches = data.matches?.data ?? [];
-const stats = teamId ? teamStats(matches, teamId) : null;
+const aliases = Object.fromEntries(Object.entries(namen as Record<string, string>).filter(([k]) => !k.startsWith('_')));
+const stats = teamId ? teamStats(matches, teamId, aliases) : null;
 
 const rowFor = (mode: 'all' | 'home' | 'away') => (teamId ? computeTable(matches, mode).find((r) => r.teamInfoId === teamId) : undefined);
 const bilanz = [

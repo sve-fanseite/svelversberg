@@ -35,7 +35,42 @@ function periodOf(minute: number): number {
   return 5;
 }
 
-export function teamStats(matches: OldbMatch[], teamId: number): TeamStats {
+/**
+ * Führt Schreibvarianten desselben Spielers zusammen (die OpenLigaDB-Community schreibt
+ * Namen unterschiedlich, z. B. "D. Mokwa" und "David Mokwa Ntusu").
+ * 1. feste Zuordnungen aus aliases (Variante → gewünschter Name)
+ * 2. "X. Nachname" wird dem einzigen ausgeschriebenen Namen zugeordnet, der mit X beginnt
+ *    und alle übrigen Wörter enthält.
+ */
+export function mergeScorers(list: Scorer[], aliases: Record<string, string> = {}): Scorer[] {
+  const merged = new Map<string, Scorer>();
+  const add = (name: string, s: Scorer) => {
+    const cur = merged.get(name) ?? { name, goals: 0, penalties: 0 };
+    cur.goals += s.goals;
+    cur.penalties += s.penalties;
+    merged.set(name, cur);
+  };
+  for (const s of list) add(aliases[s.name] ?? s.name, s);
+
+  const words = (n: string) => n.toLocaleLowerCase('de').split(/[\s-]+/).filter(Boolean);
+  const abbreviated = /^(\p{Lu})\.\s*(.+)$/u;
+  for (const [name, s] of [...merged]) {
+    const m = name.match(abbreviated);
+    if (!m) continue;
+    const [, initial, rest] = m;
+    const need = words(rest);
+    const candidates = [...merged.keys()].filter(
+      (full) => full !== name && !abbreviated.test(full) && full.startsWith(initial) && need.every((w) => words(full).includes(w)),
+    );
+    if (candidates.length === 1) {
+      merged.delete(name);
+      add(candidates[0], s);
+    }
+  }
+  return [...merged.values()].sort((a, b) => b.goals - a.goals || a.name.localeCompare(b.name, 'de'));
+}
+
+export function teamStats(matches: OldbMatch[], teamId: number, aliases: Record<string, string> = {}): TeamStats {
   const own = matches
     .filter((m) => involves(m, teamId) && m.matchIsFinished && finalScore(m))
     .sort(byKickoff);
@@ -108,6 +143,6 @@ export function teamStats(matches: OldbMatch[], teamId: number): TeamStats {
     if (countedFor !== gf || countedAgainst !== ga || namesMissing) stats.incompleteMatches.push(m);
   }
 
-  stats.scorers = [...scorers.values()].sort((a, b) => b.goals - a.goals || a.name.localeCompare(b.name, 'de'));
+  stats.scorers = mergeScorers([...scorers.values()], aliases);
   return stats;
 }
