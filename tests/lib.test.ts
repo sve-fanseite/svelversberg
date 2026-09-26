@@ -127,3 +127,23 @@ test('Kalenderdatei: gültige Struktur, Ergebnis im Titel, Zeilen ≤ 75 Byte', 
   assert.ok(ics.includes('Bundesliga 2026/27\\, 4. Spieltag'));
   for (const line of ics.split('\r\n')) assert.ok(new TextEncoder().encode(line).length <= 75, line);
 });
+
+test('Vereinsfarben: gültige Hex-Werte und Schrift gut lesbar (Kontrast ≥ 4,5)', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const farben = JSON.parse(await readFile('src/data/vereinsfarben.json', 'utf8'));
+  const lum = (h: string) => {
+    const c = [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16) / 255)
+      .map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4));
+    return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+  };
+  const contrast = (a: string, b: string) => {
+    const [x, y] = [lum(a), lum(b)];
+    return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
+  };
+  for (const [id, f] of Object.entries(farben)) {
+    if (id.startsWith('_')) continue;
+    const v = f as { name: string; bg: string; fg: string; ring?: string };
+    for (const c of [v.bg, v.fg, v.ring].filter(Boolean)) assert.match(c as string, /^#[0-9A-F]{6}$/i, `${v.name}: ${c}`);
+    assert.ok(contrast(v.bg, v.fg) >= 4.5, `${v.name}: Kontrast ${contrast(v.bg, v.fg).toFixed(2)}`);
+  }
+});

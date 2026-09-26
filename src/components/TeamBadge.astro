@@ -1,25 +1,36 @@
 ---
-// Neutrales Kürzel-Badge statt Vereinswappen.
+// Kürzel-Plakette in Vereinsfarben – bewusst kein Wappen.
+// Farben pflegen: src/data/vereinsfarben.json
 import { teamInitials } from '../lib/openligadb.ts';
+import farben from '../data/vereinsfarben.json';
 
 interface Props {
-  team: { teamName: string; shortName?: string | null };
+  team: { teamId?: number; teamName: string; shortName?: string | null };
   highlight?: boolean;
+  /** Plakette sitzt auf einer Fläche in Akzentfarbe (z. B. Elversberg-Zeile) */
+  onAccent?: boolean;
   size?: 'sm' | 'md' | 'lg';
 }
-const { team, highlight = false, size = 'md' } = Astro.props;
+const { team, highlight = false, onAccent = false, size = 'md' } = Astro.props;
 const sizes = {
-  sm: 'size-8 text-[11px]',
+  sm: 'size-7 text-[10px]',
   md: 'size-12 text-sm',
   lg: 'size-16 text-lg sm:size-20 sm:text-xl',
 };
+type Farbe = { bg: string; fg: string; ring?: string };
+const farbe = team.teamId != null ? ((farben as Record<string, unknown>)[String(team.teamId)] as Farbe | undefined) : undefined;
+const style =
+  !highlight && !onAccent && farbe
+    ? `background:${farbe.bg};color:${farbe.fg};box-shadow:inset 0 0 0 ${size === 'sm' ? 2 : 3}px ${farbe.ring ?? farbe.bg}`
+    : undefined;
 ---
 
 <span
   class:list={[
-    'grid shrink-0 place-items-center rounded-full font-display font-bold tracking-wide',
+    'grid shrink-0 place-items-center rounded-full font-display font-bold tracking-wide outline outline-1 -outline-offset-1 outline-line',
     sizes[size],
-    highlight ? 'bg-accent text-on-accent' : 'border border-line bg-surface-2 text-ink',
+    onAccent ? 'bg-ink text-bg' : highlight ? 'bg-accent text-on-accent' : !farbe && 'bg-surface-2 text-ink',
   ]}
+  style={style}
   aria-hidden="true">{teamInitials(team)}</span
 >
