@@ -1,0 +1,88 @@
+---
+import Base from '../layouts/Base.astro';
+import { getAnbieter } from '../lib/impressum.ts';
+import { url } from '../lib/url.ts';
+
+const a = getAnbieter();
+---
+
+<Base title="Impressum" description="Impressum der inoffiziellen Fanseite svelversberg.com.">
+  <article class="mx-auto max-w-3xl px-4 pt-10">
+    <h1 class="h-display text-5xl sm:text-6xl">Impressum</h1>
+
+    {
+      a.hasPlaceholders && (
+        <p class="mt-6 rounded-xl border-2 border-dashed border-accent p-4 text-sm" role="note">
+          Vorschau: Die Angaben in eckigen Klammern sind Platzhalter und werden vor der Veröffentlichung ersetzt.
+        </p>
+      )
+    }
+
+    <div class="mt-8 space-y-8 leading-relaxed">
+      <section>
+        <h2 class="text-xl font-semibold">Angaben gemäß § 5 DDG</h2>
+        <p class="mt-2">
+          {a.name}<br />
+          {a.strasse}<br />
+          {a.ort}
+        </p>
+      </section>
+
+      <section>
+        <h2 class="text-xl font-semibold">Kontakt</h2>
+        <p class="mt-2">
+          E-Mail: <a class="text-accent-ink underline" href={`mailto:${a.email}`}>{a.email}</a>
+          {a.telefon && (
+            <>
+              <br />
+              Telefon: {a.telefon}
+            </>
+          )}
+        </p>
+      </section>
+
+      <section>
+        <h2 class="text-xl font-semibold">Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV</h2>
+        <p class="mt-2">{a.name}, Anschrift wie oben</p>
+      </section>
+
+      <section>
+        <h2 class="text-xl font-semibold">Inoffizielle Fanseite</h2>
+        <p class="mt-2">
+          svelversberg.com ist eine private, nicht-kommerzielle Fanseite. Sie steht in keiner Verbindung zur SV 07 Elversberg und wird von ihr weder
+          betrieben noch unterstützt. Vereinsnamen und Marken gehören ihren jeweiligen Inhabern und werden nur zur Bezeichnung der Vereine
+          verwendet.
+        </p>
+      </section>
+
+      <section>
+        <h2 class="text-xl font-semibold">Daten und Inhalte</h2>
+        <p class="mt-2">
+          Spielplan, Ergebnisse und Tabelle stammen von <a class="text-accent-ink underline" href="https://www.openligadb.de" rel="noopener">OpenLigaDB</a>,
+          einem Gemeinschaftsprojekt, und werden automatisch übernommen. Wir prüfen sie nicht einzeln und übernehmen keine Gewähr für
+          Richtigkeit und Vollständigkeit. Bei den News zeigen wir nur Überschrift und Datum mit einem Link zur Originalquelle.
+        </p>
+      </section>
+
+      <section>
+        <h2 class="text-xl font-semibold">Links zu anderen Websites</h2>
+        <p class="mt-2">
+          Für die Inhalte verlinkter Seiten sind ausschließlich deren Betreiber verantwortlich. Zum Zeitpunkt der Verlinkung waren keine
+          Rechtsverstöße erkennbar. Werden uns Rechtsverletzungen bekannt, entfernen wir den betreffenden Link umgehend.
+        </p>
+      </section>
+
+      <section>
+        <h2 class="text-xl font-semibold">Hinweis auf Rechtsverletzungen</h2>
+        <p class="mt-2">
+          Sollte dir auf dieser Seite etwas auffallen, das Rechte verletzt oder falsch ist, schreib uns bitte an
+          <a class="text-accent-ink underline" href={`mailto:${a.email}`}>{a.email}</a>. Wir kümmern uns schnell darum.
+        </p>
+      </section>
+
+      <p class="text-sm text-muted">
+        Zur <a class="underline" href={url('/datenschutz')}>Datenschutzerklärung</a>
+      </p>
+    </div>
+  </article>
+</Base>

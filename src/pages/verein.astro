@@ -1,0 +1,152 @@
+---
+import Base from '../layouts/Base.astro';
+import verein from '../data/verein.json';
+
+const { intro, chronik, erfolge, pokal, stadion, anfahrt, quellen } = verein;
+const q = encodeURIComponent(stadion.adresse);
+const mapLinks = [
+  { label: 'OpenStreetMap', url: `https://www.openstreetmap.org/search?query=${q}` },
+  { label: 'Google Maps', url: `https://www.google.com/maps/search/?api=1&query=${q}` },
+  { label: 'Apple Karten', url: `https://maps.apple.com/?q=${q}` },
+];
+---
+
+<Base title="Verein" description="Die SV 07 Elversberg: Geschichte von 1907 bis zur Bundesliga, Erfolge, die URSAPHARM-Arena an der Kaiserlinde und die Anfahrt.">
+  <div class="mx-auto max-w-5xl px-4 pt-10">
+    <p class="eyebrow">Seit 1907</p>
+    <h1 class="h-display mt-2 text-5xl sm:text-6xl">Die Elv</h1>
+    <p class="mt-4 max-w-3xl text-lg leading-relaxed text-muted">{intro}</p>
+
+    <nav aria-label="Abschnitte" class="mt-6 flex flex-wrap gap-2 text-sm font-semibold">
+      {
+        [
+          ['#geschichte', 'Geschichte'],
+          ['#erfolge', 'Erfolge'],
+          ['#stadion', 'Stadion'],
+          ['#anfahrt', 'Anfahrt'],
+        ].map(([href, label]) => (
+          <a href={href} class="rounded-full border border-line px-3.5 py-1.5 no-underline hover:bg-surface-2">
+            {label}
+          </a>
+        ))
+      }
+    </nav>
+
+    <section id="geschichte" class="mt-14 scroll-mt-32" aria-labelledby="h-geschichte">
+      <h2 id="h-geschichte" class="h-display text-3xl sm:text-4xl">Geschichte</h2>
+      <ol class="relative mt-6 space-y-6 border-l-2 border-line pl-6">
+        {
+          chronik.map((c, i) => (
+            <li class="relative">
+              <span
+                class:list={[
+                  'absolute -left-[33px] top-1 size-4 rounded-full border-2 border-bg',
+                  i === chronik.length - 1 ? 'bg-accent' : 'bg-ink',
+                ]}
+                aria-hidden="true"
+              ></span>
+              <p class="font-display text-2xl font-bold leading-none text-accent-ink">{c.jahr}</p>
+              <p class="mt-1 max-w-2xl">{c.text}</p>
+            </li>
+          ))
+        }
+      </ol>
+    </section>
+
+    <section id="erfolge" class="mt-14 scroll-mt-32" aria-labelledby="h-erfolge">
+      <h2 id="h-erfolge" class="h-display text-3xl sm:text-4xl">Erfolge</h2>
+      <ul class="mt-4 grid gap-3 sm:grid-cols-2">
+        {
+          erfolge.map((e, i) => (
+            <li class:list={['card p-5', i === 0 && 'border-accent']}>
+              <p class="font-semibold">{e.titel}</p>
+              <p class="mt-1 text-sm text-muted">{e.jahre}</p>
+            </li>
+          ))
+        }
+      </ul>
+      <h3 class="mt-8 text-lg font-semibold">Pokal-Überraschungen</h3>
+      <ul class="mt-3 space-y-2">
+        {
+          pokal.map((p) => (
+            <li class="flex gap-4">
+              <span class="w-16 shrink-0 font-semibold tabular-nums">{p.saison}</span>
+              <span class="text-muted">{p.text}</span>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <section id="stadion" class="mt-14 scroll-mt-32" aria-labelledby="h-stadion">
+      <h2 id="h-stadion" class="h-display text-3xl sm:text-4xl">Stadion</h2>
+      <div class="dark mt-4 overflow-hidden rounded-2xl bg-bg p-6 text-ink sm:p-8">
+        <p class="eyebrow">Heimspielstätte</p>
+        <p class="h-display mt-2 text-3xl sm:text-5xl">{stadion.name}</p>
+        <p class="mt-2 text-muted">{stadion.adresse}</p>
+        <dl class="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3">
+          {
+            stadion.fakten.map((f) => (
+              <div class="border-t border-line pt-3">
+                <dt class="text-xs font-semibold uppercase tracking-wider text-muted">{f.label}</dt>
+                <dd class="mt-1 font-display text-3xl font-bold text-accent-ink">{f.wert}</dd>
+              </div>
+            ))
+          }
+        </dl>
+      </div>
+    </section>
+
+    <section id="anfahrt" class="mt-14 scroll-mt-32" aria-labelledby="h-anfahrt">
+      <h2 id="h-anfahrt" class="h-display text-3xl sm:text-4xl">Anfahrt</h2>
+      <div class="mt-4 grid gap-3 md:grid-cols-2">
+        <div class="card p-5">
+          <h3 class="font-semibold">Mit Bus und Bahn</h3>
+          <p class="mt-2 text-sm leading-relaxed text-muted">{anfahrt.oepnv}</p>
+        </div>
+        <div class="card p-5">
+          <h3 class="font-semibold">Mit dem Auto</h3>
+          <p class="mt-2 text-sm leading-relaxed text-muted">{anfahrt.auto}</p>
+        </div>
+      </div>
+      <p class="mt-3 text-sm">{anfahrt.tipp}</p>
+      <div class="mt-5 flex flex-wrap gap-2">
+        {
+          mapLinks.map((l) => (
+            <a href={l.url} rel="noopener" target="_blank" class="btn btn-ghost">
+              {l.label} <span aria-hidden="true">↗</span>
+            </a>
+          ))
+        }
+      </div>
+      <p class="mt-4 text-sm text-muted">
+        Aktuelle Hinweise zu Anreise, Einlass und Tickets gibt es immer beim Verein:
+        {
+          anfahrt.links.map((l, i) => (
+            <>
+              {i > 0 && ' · '}
+              <a href={l.url} rel="noopener" class="text-accent-ink underline">
+                {l.label}
+              </a>
+            </>
+          ))
+        }
+      </p>
+    </section>
+
+    <details class="mt-14 text-sm text-muted">
+      <summary class="cursor-pointer font-semibold text-ink">Quellen</summary>
+      <ul class="mt-2 list-disc space-y-1 pl-5">
+        {
+          quellen.map((s) => (
+            <li>
+              <a href={s.url} rel="noopener" class="underline">
+                {s.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </details>
+  </div>
+</Base>

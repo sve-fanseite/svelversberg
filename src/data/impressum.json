@@ -1,0 +1,9 @@
+{
+  "_hinweis": "Deine Angaben für Impressum und Datenschutzerklärung. Ersetze alle Werte in eckigen Klammern. Solange noch [Platzhalter] drinstehen, bricht die Veröffentlichung auf svelversberg.com absichtlich ab (die Vorschau funktioniert trotzdem).",
+  "name": "[Vorname Nachname]",
+  "strasse": "[Straße Hausnummer]",
+  "ort": "[PLZ Ort]",
+  "email": "kontakt@svelversberg.com",
+  "telefon": null,
+  "stand": "2026-09-26"
+}

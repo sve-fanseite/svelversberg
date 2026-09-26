@@ -1,0 +1,108 @@
+---
+import Base from '../layouts/Base.astro';
+import { getAnbieter } from '../lib/impressum.ts';
+import { formatDay } from '../lib/time.ts';
+
+const a = getAnbieter();
+const h2 = 'text-xl font-semibold';
+---
+
+<Base title="Datenschutz" description="Datenschutzerklärung der inoffiziellen Fanseite svelversberg.com.">
+  <article class="mx-auto max-w-3xl px-4 pt-10">
+    <h1 class="h-display text-5xl sm:text-6xl">Datenschutz</h1>
+    <p class="mt-4 text-lg text-muted">
+      Kurz gesagt: Diese Seite setzt keine Cookies, nutzt kein Tracking und keine Werbung und lädt nichts von fremden Servern. Die Einzelheiten
+      stehen hier.
+    </p>
+
+    {
+      a.hasPlaceholders && (
+        <p class="mt-6 rounded-xl border-2 border-dashed border-accent p-4 text-sm" role="note">
+          Vorschau: Die Angaben in eckigen Klammern sind Platzhalter und werden vor der Veröffentlichung ersetzt.
+        </p>
+      )
+    }
+
+    <div class="mt-8 space-y-8 leading-relaxed">
+      <section>
+        <h2 class={h2}>1. Verantwortlicher</h2>
+        <p class="mt-2">
+          {a.name}, {a.strasse}, {a.ort}<br />
+          E-Mail: <a class="text-accent-ink underline" href={`mailto:${a.email}`}>{a.email}</a>
+        </p>
+      </section>
+
+      <section>
+        <h2 class={h2}>2. Aufruf der Website und Server-Logdateien</h2>
+        <p class="mt-2">
+          Die Seite liegt bei der IONOS SE, Elgendorfer Str. 57, 56410 Montabaur, auf Servern in Deutschland. Wenn du die Seite aufrufst,
+          überträgt dein Browser technisch notwendige Daten an den Server: IP-Adresse, Datum und Uhrzeit, aufgerufene Adresse, übertragene
+          Datenmenge, Browser und Betriebssystem sowie gegebenenfalls die zuvor besuchte Seite. Das gilt auch, wenn dein Kalender den
+          abonnierten Spielplan (spielplan.ics) abruft.
+        </p>
+        <p class="mt-2">
+          Diese Daten werden benötigt, um die Seite auszuliefern und den Betrieb sicher zu halten (Abwehr von Angriffen, Fehlersuche).
+          Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO; unser berechtigtes Interesse liegt in einem sicheren und funktionierenden Angebot.
+          Die Daten werden nicht mit anderen Daten zusammengeführt und nicht zur Auswertung deines Verhaltens genutzt. IONOS verarbeitet sie
+          in unserem Auftrag (Auftragsverarbeitung nach Art. 28 DSGVO); die Speicherdauer richtet sich nach den Einstellungen des Hosters.
+        </p>
+      </section>
+
+      <section>
+        <h2 class={h2}>3. Keine Cookies, kein Tracking</h2>
+        <p class="mt-2">
+          Wir setzen keine Cookies und verwenden keine Analyse-, Werbe- oder Social-Media-Dienste. Schriftarten liegen auf unserem eigenen
+          Server; es werden keine Inhalte von Google oder anderen fremden Servern geladen.
+        </p>
+      </section>
+
+      <section>
+        <h2 class={h2}>4. Hell- und Dunkelmodus</h2>
+        <p class="mt-2">
+          Wenn du den Schalter für den Farbmodus benutzt, merkt sich dein Browser deine Wahl („hell“ oder „dunkel“) im lokalen Speicher
+          (localStorage). Diese Angabe bleibt auf deinem Gerät und wird nicht an uns übertragen. Die Speicherung ist unbedingt erforderlich, um
+          die von dir ausdrücklich gewünschte Funktion bereitzustellen (§ 25 Abs. 2 Nr. 2 TDDDG). Du kannst sie jederzeit über die
+          Browsereinstellungen löschen.
+        </p>
+      </section>
+
+      <section>
+        <h2 class={h2}>5. Spieldaten und News</h2>
+        <p class="mt-2">
+          Tabelle, Spielplan und Ergebnisse (von OpenLigaDB) sowie die News-Überschriften (RSS-Feeds) werden beim automatischen Erstellen der
+          Seite abgerufen, nicht in deinem Browser. Beim Besuch der Seite entsteht also keine Verbindung zu diesen Diensten. Erstellt wird die
+          Seite über GitHub Actions (GitHub Inc., USA); dabei werden keine Daten von Besucherinnen und Besuchern verarbeitet.
+        </p>
+      </section>
+
+      <section>
+        <h2 class={h2}>6. Links zu anderen Seiten</h2>
+        <p class="mt-2">
+          Die Seite enthält Links, etwa zu den News-Quellen, zur offiziellen Vereinsseite oder zu Kartendiensten. Erst wenn du einen Link
+          anklickst, verbindet sich dein Browser mit der fremden Seite. Dort gilt deren Datenschutzerklärung.
+        </p>
+      </section>
+
+      <section>
+        <h2 class={h2}>7. Kontakt per E-Mail</h2>
+        <p class="mt-2">
+          Wenn du uns schreibst, verarbeiten wir deine E-Mail-Adresse und den Inhalt deiner Nachricht, um dir zu antworten (Art. 6 Abs. 1 lit.
+          f DSGVO, bei vertragsähnlichen Anfragen lit. b). Wir löschen die Nachricht, sobald sie erledigt ist und keine gesetzlichen
+          Aufbewahrungspflichten entgegenstehen. Das E-Mail-Postfach liegt ebenfalls bei IONOS.
+        </p>
+      </section>
+
+      <section>
+        <h2 class={h2}>8. Deine Rechte</h2>
+        <p class="mt-2">
+          Du hast das Recht auf Auskunft (Art. 15 DSGVO), Berichtigung (Art. 16), Löschung (Art. 17), Einschränkung der Verarbeitung (Art. 18),
+          Datenübertragbarkeit (Art. 20) und Widerspruch gegen Verarbeitungen auf Grundlage von Art. 6 Abs. 1 lit. f DSGVO (Art. 21). Eine kurze
+          E-Mail genügt. Außerdem kannst du dich bei einer Datenschutz-Aufsichtsbehörde beschweren (Art. 77 DSGVO), zum Beispiel in dem
+          Bundesland, in dem du wohnst.
+        </p>
+      </section>
+
+      <p class="text-sm text-muted">Stand: {formatDay(new Date(a.stand))}</p>
+    </div>
+  </article>
+</Base>

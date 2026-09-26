@@ -15,9 +15,9 @@ export default defineConfig({
   build: { format: 'directory' },
   integrations: [
     sitemap({
-      // Platzhalter-Seiten (noch "In Arbeit") und 404 nicht in die Sitemap
+      // 404-Seite nicht in die Sitemap
       filter: (page) =>
-        !/\/(404|verein|impressum|datenschutz)\/?$/.test(page),
+        !/\/404\/?$/.test(page),
     }),
   ],
   vite: {

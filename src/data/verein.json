@@ -1,0 +1,161 @@
+{
+  "_hinweis": "Inhalte der Seite Verein. Texte sind eigene Formulierungen; Fakten stammen aus den unten genannten Quellen. Beim Ergänzen bitte immer eine Quelle prüfen.",
+  "intro": "Die SV 07 Elversberg kommt aus Spiesen-Elversberg im Saarland. Jahrzehntelang war die Elv ein Verein des Amateur- und Regionalfußballs – dann ging es Schlag auf Schlag: Meister der Regionalliga 2022, als Aufsteiger direkt Meister der 3. Liga 2023 und nach drei Jahren in der 2. Bundesliga der erste Aufstieg in die Bundesliga 2026.",
+  "chronik": [
+    {
+      "jahr": "1907",
+      "text": "Gründung als FC Germania Elversberg."
+    },
+    {
+      "jahr": "1918",
+      "text": "Neugründung als Sportvereinigung Elversberg VfB, nachdem sich der Verein im Ersten Weltkrieg aufgelöst hatte."
+    },
+    {
+      "jahr": "1925",
+      "text": "Bau des Sportplatzes an der Kaiserlinde – bis heute die Heimat des Vereins."
+    },
+    {
+      "jahr": "1952",
+      "text": "Umbenennung in Sportvereinigung Elversberg, VfB 07."
+    },
+    {
+      "jahr": "1979/80",
+      "text": "Erste Teilnahme am DFB-Pokal (bis in die 2. Runde) und Aufstieg in die Oberliga Südwest."
+    },
+    {
+      "jahr": "1996",
+      "text": "Meister der Oberliga Südwest und Aufstieg in die Regionalliga."
+    },
+    {
+      "jahr": "2012/13",
+      "text": "Vizemeister der Regionalliga Südwest; über die Aufstiegsspiele gegen den TSV 1860 München II geht es erstmals in die 3. Liga."
+    },
+    {
+      "jahr": "2013/14",
+      "text": "Nach einer Saison als Tabellenletzter zurück in die Regionalliga."
+    },
+    {
+      "jahr": "2021/22",
+      "text": "Meister der Regionalliga Südwest mit 80 Punkten und Sieg im Saarlandpokal – das Double."
+    },
+    {
+      "jahr": "2022/23",
+      "text": "Als Aufsteiger direkt Meister der 3. Liga und Aufstieg in die 2. Bundesliga."
+    },
+    {
+      "jahr": "2024/25",
+      "text": "Platz 3 in der 2. Bundesliga; in der Relegation scheitert die Elv knapp am 1. FC Heidenheim."
+    },
+    {
+      "jahr": "2025/26",
+      "text": "Vizemeister der 2. Bundesliga und erstmals Aufstieg in die Bundesliga."
+    }
+  ],
+  "erfolge": [
+    {
+      "titel": "Aufstieg in die Bundesliga",
+      "jahre": "2026"
+    },
+    {
+      "titel": "Meister der 3. Liga",
+      "jahre": "2023"
+    },
+    {
+      "titel": "Meister der Regionalliga Südwest",
+      "jahre": "2017, 2022"
+    },
+    {
+      "titel": "Meister der Oberliga Südwest",
+      "jahre": "1996, 1998"
+    },
+    {
+      "titel": "Saarlandpokal (8×)",
+      "jahre": "2009, 2010, 2015, 2018, 2020, 2021, 2022, 2023"
+    }
+  ],
+  "pokal": [
+    {
+      "saison": "2010/11",
+      "text": "1. Runde: Sieg im Elfmeterschießen gegen Hannover 96"
+    },
+    {
+      "saison": "2020/21",
+      "text": "1. Runde: 4:2 gegen den FC St. Pauli"
+    },
+    {
+      "saison": "2022/23",
+      "text": "1. Runde: 4:3 gegen Bayer 04 Leverkusen"
+    }
+  ],
+  "stadion": {
+    "name": "URSAPHARM-Arena an der Kaiserlinde",
+    "adresse": "Lindenstraße 20, 66583 Spiesen-Elversberg",
+    "fakten": [
+      {
+        "label": "Plätze gesamt",
+        "wert": "10.000"
+      },
+      {
+        "label": "Stehplätze",
+        "wert": "6.320"
+      },
+      {
+        "label": "Sitzplätze",
+        "wert": "3.410"
+      },
+      {
+        "label": "Logenplätze",
+        "wert": "270"
+      },
+      {
+        "label": "Spielfeld",
+        "wert": "105 × 68 m"
+      },
+      {
+        "label": "Flutlicht",
+        "wert": "ca. 1.300 Lux"
+      }
+    ]
+  },
+  "anfahrt": {
+    "oepnv": "An Heimspieltagen fahren Shuttle-Busse von den Bahnhöfen Neunkirchen und St. Ingbert direkt zum Stadion. Tagestickets und Dauerkarten gelten ab vier Stunden vor bis vier Stunden nach dem Spiel als Fahrschein in Bussen und Bahnen des saarVV.",
+    "auto": "Der Stadionparkplatz ist nicht für Fans vorgesehen. Kostenlos parken kannst du auf den P+R-Plätzen Heinitz (I und II) und Wellesweiler; von dort fährt ab zwei Stunden vor Anpfiff ein kostenloser Shuttle zum Stadion.",
+    "tipp": "Früh losfahren lohnt sich – vor allem bei ausverkauftem Haus.",
+    "links": [
+      {
+        "label": "Infos für Heimfans",
+        "url": "https://sv07elversberg.de/infos-fuer-heimfans/"
+      },
+      {
+        "label": "Infos für Gästefans",
+        "url": "https://sv07elversberg.de/infos-fuer-gaestefans/"
+      }
+    ]
+  },
+  "quellen": [
+    {
+      "label": "Historie (sv07elversberg.de)",
+      "url": "https://sv07elversberg.de/die-sve/historie/"
+    },
+    {
+      "label": "Stadion – Daten & Fakten (sv07elversberg.de)",
+      "url": "https://sv07elversberg.de/ursapharm-arena/daten-fakten/"
+    },
+    {
+      "label": "Infos für Heimfans (sv07elversberg.de)",
+      "url": "https://sv07elversberg.de/infos-fuer-heimfans/"
+    },
+    {
+      "label": "SV 07 Elversberg (dewiki.de)",
+      "url": "https://dewiki.de/Lexikon/SV_07_Elversberg"
+    },
+    {
+      "label": "SV Elversberg (en.wikipedia.org)",
+      "url": "https://en.wikipedia.org/wiki/SV_Elversberg"
+    },
+    {
+      "label": "Stadionadresse (stadion.de)",
+      "url": "https://www.stadion.de/stadion/ursapharm-arena/"
+    }
+  ]
+}
