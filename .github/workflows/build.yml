@@ -9,6 +9,7 @@ on:
   schedule:
     - cron: '17 * * * *' # stündlich
     - cron: '*/15 11-21 * * 5,6,0' # Fr–So tagsüber alle 15 Minuten (Zeiten in UTC)
+    - cron: '7 4 1 * *' # monatlich: Wachhalten (siehe Job "wachhalten")
 
 permissions:
   contents: read
@@ -76,3 +77,70 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
+
+  # Echte Seite auf svelversberg.com (IONOS). Läuft erst, wenn unter
+  # Settings → Secrets and variables → Actions → Variables  DEPLOY_IONOS = true  gesetzt ist.
+  live:
+    if: vars.DEPLOY_IONOS == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: ionos
+      url: https://svelversberg.com
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package.json
+
+      - name: Pakete installieren
+        run: npm install --no-audit --no-fund
+
+      - name: Letzten Datenstand wiederherstellen
+        uses: actions/cache/restore@v4
+        with:
+          path: .cache
+          key: daten-live-${{ github.run_id }}
+          restore-keys: daten-live-
+
+      - name: Seite bauen
+        env:
+          SITE_URL: https://svelversberg.com
+          BASE_PATH: /
+          STRICT_DATA: '1'
+          FALLBACK_URL: https://svelversberg.com/data/snapshot.json
+        run: npm run build
+
+      - name: Datenstand merken
+        uses: actions/cache/save@v4
+        with:
+          path: .cache
+          key: daten-live-${{ github.run_id }}
+
+      - name: Auf IONOS hochladen
+        env:
+          SFTP_HOST: ${{ secrets.SFTP_HOST }}
+          SFTP_USER: ${{ secrets.SFTP_USER }}
+          SFTP_PASSWORD: ${{ secrets.SFTP_PASSWORD }}
+          SFTP_PATH: ${{ secrets.SFTP_PATH }}
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq lftp
+          ./scripts/deploy-ionos.sh
+
+  # GitHub pausiert zeitgesteuerte Abläufe in öffentlichen Projekten nach 60 Tagen ohne Änderung.
+  # Ein leerer Monats-Commit hält die automatischen Updates am Laufen.
+  wachhalten:
+    if: github.event.schedule == '7 4 1 * *'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit --allow-empty -m "Wachhalten der automatischen Updates"
+          git push
