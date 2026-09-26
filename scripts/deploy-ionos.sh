@@ -7,14 +7,12 @@ set -euo pipefail
 : "${SFTP_HOST:?SFTP_HOST fehlt (GitHub-Secret)}"
 : "${SFTP_USER:?SFTP_USER fehlt (GitHub-Secret)}"
 : "${SFTP_PASSWORD:?SFTP_PASSWORD fehlt (GitHub-Secret)}"
-: "${SFTP_PATH:?SFTP_PATH fehlt (GitHub-Secret), z. B. /svelversberg}"
+: "${SFTP_PATH:?SFTP_PATH fehlt (GitHub-Secret), z. B. / bei eigenem SFTP-Konto}"
 
-case "$SFTP_PATH" in
-  "" | "/" | "." | "./")
-    echo "Abbruch: SFTP_PATH darf nicht das Hauptverzeichnis sein. Bitte einen eigenen Ordner wie /svelversberg verwenden." >&2
-    exit 1 ;;
-esac
-
+# Zielpfad normalisieren ("/svelversberg/" → "/svelversberg"; "/" bleibt "/").
+# Empfohlen: eigenes SFTP-Konto, das auf den Ordner /svelversberg beschränkt ist – dann ist SFTP_PATH einfach "/".
+TARGET="${SFTP_PATH%/}"
+TARGET="${TARGET:-/}"
 MARKER=".svelversberg-deploy"
 date -u +"%Y-%m-%dT%H:%M:%SZ" > "dist/$MARKER"
 
@@ -23,14 +21,19 @@ export LFTP_PASSWORD="$SFTP_PASSWORD"
 OPEN="open --env-password -u \"$SFTP_USER\" sftp://$SFTP_HOST"
 
 # Zielordner anlegen (falls nötig) und Inhalt prüfen
-listing=$(lftp -c "$LFTP_SETTINGS; $OPEN; mkdir -p -f \"$SFTP_PATH\"; cls -1a \"$SFTP_PATH/\"" 2>/dev/null | sed -E 's#/$##; s#.*/##' | grep -v -E '^(\.{1,2})?$' || true)
+lftp -c "$LFTP_SETTINGS; $OPEN; mkdir -p -f \"$TARGET\"" 2>/dev/null || true
+if ! raw=$(lftp -c "$LFTP_SETTINGS; $OPEN; cls -1a \"${TARGET%/}/\""); then
+  echo "Abbruch: Verbindung zu IONOS fehlgeschlagen oder Ordner nicht lesbar. Zugangsdaten (Secrets) prüfen." >&2
+  exit 1
+fi
+listing=$(sed -E 's#/$##; s#.*/##' <<<"$raw" | grep -v -E '^(\.{1,2})?$' || true)
 if [ -n "$listing" ] && ! grep -qx "$MARKER" <<<"$listing"; then
-  echo "Abbruch: Der Zielordner $SFTP_PATH enthält fremde Dateien:" >&2
+  echo "Abbruch: Der Zielordner $TARGET enthält fremde Dateien:" >&2
   head -20 <<<"$listing" >&2
   echo "Bitte einen leeren, eigenen Ordner verwenden (siehe Anleitung)." >&2
   exit 1
 fi
 
 # Spiegeln: neue/geänderte Dateien hochladen, nicht mehr vorhandene löschen
-lftp -c "$LFTP_SETTINGS; $OPEN; mirror --reverse --delete --verbose=1 --parallel=4 dist/ \"$SFTP_PATH/\""
-echo "Fertig: Seite nach $SFTP_PATH hochgeladen."
+lftp -c "$LFTP_SETTINGS; $OPEN; mirror --reverse --delete --verbose=1 --parallel=4 dist/ \"${TARGET%/}/\""
+echo "Fertig: Seite nach $TARGET hochgeladen."
