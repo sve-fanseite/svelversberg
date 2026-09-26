@@ -1,0 +1,12 @@
+---
+// Freundliche Meldung, wenn Daten fehlen – statt einer kaputten Seite.
+interface Props {
+  title?: string;
+}
+const { title = 'Daten gerade nicht verfügbar' } = Astro.props;
+---
+
+<div class="rounded-xl border border-dashed border-line bg-surface-2/60 p-5 text-sm" role="status">
+  <p class="font-semibold">{title}</p>
+  <p class="mt-1 text-muted"><slot>Die Datenquelle hat nicht geantwortet. Beim nächsten automatischen Update versuchen wir es erneut.</slot></p>
+</div>

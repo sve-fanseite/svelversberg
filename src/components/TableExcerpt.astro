@@ -1,0 +1,74 @@
+---
+import SourceNote from './SourceNote.astro';
+import Notice from './Notice.astro';
+import { shortLabel, tableExcerpt, type TableRow } from '../lib/openligadb.ts';
+import type { LeagueInfo, Section } from '../lib/data.ts';
+import { url } from '../lib/url.ts';
+
+interface Props {
+  section: Section<TableRow[]> | null;
+  teamId: number | null;
+  league: LeagueInfo | null;
+}
+const { section, teamId, league } = Astro.props;
+const rows = section && teamId ? tableExcerpt(section.data, teamId, 5) : [];
+const total = section?.data.length ?? 0;
+---
+
+<section class="card reveal reveal-2 flex flex-col p-5 sm:p-6" aria-labelledby="table-heading">
+  <div class="flex items-baseline justify-between gap-3">
+    <h2 id="table-heading" class="eyebrow">Tabelle{league && ` · ${league.name}`}</h2>
+    {league && <span class="text-xs text-muted">Saison {league.seasonLabel}</span>}
+  </div>
+
+  {
+    rows.length > 0 ? (
+      <table class="mt-4 w-full text-sm">
+        <caption class="sr-only">
+          Tabellenausschnitt rund um die SV Elversberg
+        </caption>
+        <thead>
+          <tr class="text-left text-xs text-muted">
+            <th scope="col" class="w-8 pb-2 font-medium">#</th>
+            <th scope="col" class="pb-2 font-medium">Verein</th>
+            <th scope="col" class="pb-2 text-right font-medium" title="Spiele">Sp.</th>
+            <th scope="col" class="pb-2 text-right font-medium" title="Tordifferenz">Diff.</th>
+            <th scope="col" class="pb-2 text-right font-medium" title="Punkte">Pkt.</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r) => {
+            const own = r.teamInfoId === teamId;
+            return (
+              <tr class:list={[own ? 'bg-accent font-semibold text-on-accent' : 'border-t border-line']} aria-current={own ? 'true' : undefined}>
+                <td class:list={['py-2.5 tabular-nums', own && 'rounded-l-lg pl-2']}>{r.rank}.</td>
+                <td class="max-w-0 truncate py-2.5 pr-2">
+                  <span class="sm:hidden">{shortLabel(r)}</span>
+                  <span class="hidden sm:inline">{r.teamName}</span>
+                </td>
+                <td class="py-2.5 text-right tabular-nums">{r.matches}</td>
+                <td class="py-2.5 text-right tabular-nums">{r.goalDiff > 0 ? `+${r.goalDiff}` : r.goalDiff}</td>
+                <td class:list={['py-2.5 text-right font-semibold tabular-nums', own && 'rounded-r-lg pr-2']}>{r.points}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    ) : (
+      <div class="mt-4">
+        <Notice />
+      </div>
+    )
+  }
+
+  <div class="mt-auto pt-4">
+    {
+      rows.length > 0 && (
+        <a href={url('/tabelle')} class="text-sm font-semibold text-accent-ink underline">
+          Komplette Tabelle ({total} Vereine)
+        </a>
+      )
+    }
+    {section && <SourceNote source="OpenLigaDB" asOf={section.asOf} stale={section.stale} />}
+  </div>
+</section>

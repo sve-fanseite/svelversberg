@@ -1,0 +1,38 @@
+---
+import Base from '../layouts/Base.astro';
+import NextMatch from '../components/NextMatch.astro';
+import LastResult from '../components/LastResult.astro';
+import TableExcerpt from '../components/TableExcerpt.astro';
+import NewsCards from '../components/NewsCards.astro';
+import { getSiteData } from '../lib/data.ts';
+import { findLastMatch, findNextMatch, formFor } from '../lib/openligadb.ts';
+import { HOME_NEWS_COUNT } from '../config.ts';
+import { url } from '../lib/url.ts';
+
+const data = await getSiteData();
+const teamId = data.team?.data.teamId ?? null;
+const league = data.league?.data ?? null;
+const matches = data.matches?.data ?? [];
+const next = teamId ? findNextMatch(matches, teamId) : null;
+const last = teamId ? findLastMatch(matches, teamId) : null;
+const form = teamId ? formFor(matches, teamId, 5) : [];
+---
+
+<Base>
+  <NextMatch match={next} teamId={teamId} league={league} section={data.matches} />
+
+  <div class="mx-auto max-w-6xl space-y-12 px-4 pt-10">
+    <div class="grid gap-4 lg:grid-cols-2">
+      <LastResult match={last} teamId={teamId} form={form} section={data.matches} />
+      <TableExcerpt section={data.table} teamId={teamId} league={league} />
+    </div>
+
+    <section aria-labelledby="news-heading">
+      <div class="mb-5 flex items-end justify-between gap-4">
+        <h2 id="news-heading" class="h-display text-4xl sm:text-5xl">News</h2>
+        <a href={url('/news')} class="text-sm font-semibold text-accent-ink underline">Alle News</a>
+      </div>
+      <NewsCards section={data.news} count={HOME_NEWS_COUNT} />
+    </section>
+  </div>
+</Base>

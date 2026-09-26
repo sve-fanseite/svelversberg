@@ -1,0 +1,84 @@
+---
+import TeamBadge from './TeamBadge.astro';
+import SourceNote from './SourceNote.astro';
+import Notice from './Notice.astro';
+import FormPills from './FormPills.astro';
+import { finalScore, kickoff, outcomeFor, shortLabel, type OldbMatch, type Outcome } from '../lib/openligadb.ts';
+import type { Section } from '../lib/data.ts';
+import { formatDateShort } from '../lib/time.ts';
+
+interface Props {
+  match: OldbMatch | null;
+  teamId: number | null;
+  form: Outcome[];
+  section: Section<unknown> | null;
+}
+const { match, teamId, form, section } = Astro.props;
+const score = match ? finalScore(match) : null;
+const outcome = match && teamId ? outcomeFor(match, teamId) : null;
+const outcomeText = { S: 'Sieg', U: 'Unentschieden', N: 'Niederlage' } as const;
+const outcomeClass = { S: 'bg-win text-white', U: 'bg-draw text-white', N: 'bg-loss text-white' } as const;
+const goals = (match?.goals ?? []).filter((g) => g.scoreTeam1 != null && g.scoreTeam2 != null);
+---
+
+<section class="card reveal flex flex-col p-5 sm:p-6" aria-labelledby="last-heading">
+  <div class="flex items-center justify-between gap-3">
+    <h2 id="last-heading" class="eyebrow">Letztes Ergebnis</h2>
+    {outcome && <span class:list={['rounded-full px-2.5 py-0.5 text-xs font-semibold', outcomeClass[outcome]]}>{outcomeText[outcome]}</span>}
+  </div>
+
+  {
+    match && score ? (
+      <>
+        <p class="mt-1 text-sm text-muted">
+          {match.group?.groupName} · {formatDateShort(kickoff(match))}
+        </p>
+        <div class="mt-5 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+          <div class="flex min-w-0 flex-col items-center gap-2 text-center">
+            <TeamBadge team={match.team1} highlight={match.team1.teamId === teamId} />
+            <span class="text-sm font-semibold leading-tight">{shortLabel(match.team1)}</span>
+          </div>
+          <p class="font-display text-5xl font-bold tabular-nums sm:text-6xl" aria-label={`${score.home} zu ${score.away}`}>
+            {score.home}<span class="px-1 text-muted">:</span>{score.away}
+          </p>
+          <div class="flex min-w-0 flex-col items-center gap-2 text-center">
+            <TeamBadge team={match.team2} highlight={match.team2.teamId === teamId} />
+            <span class="text-sm font-semibold leading-tight">{shortLabel(match.team2)}</span>
+          </div>
+        </div>
+
+        {goals.length > 0 && (
+          <ol class="mt-5 space-y-1 border-t border-line pt-4 text-sm">
+            {goals.map((g) => (
+              <li class="flex gap-3">
+                <span class="w-10 shrink-0 font-semibold tabular-nums">{g.scoreTeam1}:{g.scoreTeam2}</span>
+                <span class="min-w-0 flex-1 truncate">
+                  {g.goalGetterName || 'Torschütze unbekannt'}
+                  {g.isPenalty && <span class="text-muted"> (Elfmeter)</span>}
+                  {g.isOwnGoal && <span class="text-muted"> (Eigentor)</span>}
+                </span>
+                {g.matchMinute != null && <span class="text-muted tabular-nums">{g.matchMinute}.</span>}
+              </li>
+            ))}
+          </ol>
+        )}
+
+        {form.length > 0 && (
+          <div class="mt-auto flex items-center justify-between gap-3 border-t border-line pt-4">
+            <span class="text-sm text-muted">Form (letzte {form.length})</span>
+            <FormPills form={form} />
+          </div>
+        )}
+      </>
+    ) : (
+      <div class="mt-4">
+        {section ? (
+          <Notice title="Noch kein Ergebnis">In dieser Saison wurde noch kein Spiel beendet.</Notice>
+        ) : (
+          <Notice />
+        )}
+      </div>
+    )
+  }
+  {section && <SourceNote source="OpenLigaDB" asOf={section.asOf} stale={section.stale} />}
+</section>

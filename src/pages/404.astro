@@ -1,0 +1,13 @@
+---
+import Base from '../layouts/Base.astro';
+import { url } from '../lib/url.ts';
+---
+
+<Base title="Seite nicht gefunden" noindex>
+  <div class="mx-auto max-w-3xl px-4 py-20 text-center">
+    <p class="font-display text-8xl font-bold text-accent-ink">404</p>
+    <h1 class="h-display mt-2 text-4xl sm:text-5xl">Abseits!</h1>
+    <p class="mx-auto mt-4 max-w-md text-muted">Diese Seite gibt es nicht (mehr). Vielleicht hat sich die Adresse geändert.</p>
+    <a href={url('/')} class="btn btn-accent mt-8">Zur Startseite</a>
+  </div>
+</Base>

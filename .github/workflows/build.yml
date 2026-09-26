@@ -1,0 +1,78 @@
+# Baut die Seite mit aktuellen Daten und veröffentlicht sie.
+# Derzeit: Vorschau auf GitHub Pages. Die Veröffentlichung auf IONOS kommt später dazu.
+name: Seite bauen
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: # "Run workflow"-Knopf für einen Neubau per Hand
+  schedule:
+    - cron: '17 * * * *' # stündlich
+    - cron: '*/15 11-21 * * 5,6,0' # Fr–So tagsüber alle 15 Minuten (Zeiten in UTC)
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: build
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package.json
+
+      - name: Pakete installieren
+        run: npm install --no-audit --no-fund
+
+      - name: Tests
+        run: npm test
+
+      - name: Letzten Datenstand wiederherstellen
+        uses: actions/cache/restore@v4
+        with:
+          path: .cache
+          key: daten-${{ github.run_id }}
+          restore-keys: daten-
+
+      - id: pages
+        uses: actions/configure-pages@v5
+
+      - name: Seite bauen
+        env:
+          SITE_URL: ${{ steps.pages.outputs.origin }}
+          BASE_PATH: ${{ steps.pages.outputs.base_path }}
+          PREVIEW: 'true'
+          STRICT_DATA: '1'
+          FALLBACK_URL: ${{ steps.pages.outputs.base_url }}/data/snapshot.json
+        run: npm run build
+
+      - name: Datenstand merken
+        uses: actions/cache/save@v4
+        with:
+          path: .cache
+          key: daten-${{ github.run_id }}
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  vorschau:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,20 @@
+---
+import type { Outcome } from '../lib/openligadb.ts';
+
+interface Props {
+  form: Outcome[];
+}
+const { form } = Astro.props;
+const label = { S: 'Sieg', U: 'Unentschieden', N: 'Niederlage' } as const;
+const cls = { S: 'bg-win text-white', U: 'bg-draw text-white', N: 'bg-loss text-white' } as const;
+---
+
+<ol class="flex gap-1" aria-label={`Form: ${form.map((f) => label[f]).join(', ')}`}>
+  {
+    form.map((f) => (
+      <li class:list={['grid size-6 place-items-center rounded-md text-[11px] font-bold', cls[f]]} title={label[f]} aria-hidden="true">
+        {f}
+      </li>
+    ))
+  }
+</ol>

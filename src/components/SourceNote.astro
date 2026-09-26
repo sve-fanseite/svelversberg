@@ -1,0 +1,21 @@
+---
+// Kleine Zeile unter einem Abschnitt: Quelle und Stand der Daten.
+import { formatStamp } from '../lib/time.ts';
+
+interface Props {
+  source: string;
+  asOf: string;
+  stale: boolean;
+}
+const { source, asOf, stale } = Astro.props;
+---
+
+<p class:list={['mt-3 text-xs', stale ? 'font-medium text-ink' : 'text-muted']}>
+  {
+    stale ? (
+      <><span aria-hidden="true">⚠ </span>Quelle gerade nicht erreichbar – angezeigt wird der Stand vom {formatStamp(new Date(asOf))}.</>
+    ) : (
+      <>Quelle: {source} · Stand {formatStamp(new Date(asOf))}</>
+    )
+  }
+</p>

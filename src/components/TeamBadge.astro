@@ -1,0 +1,25 @@
+---
+// Neutrales Kürzel-Badge statt Vereinswappen.
+import { teamInitials } from '../lib/openligadb.ts';
+
+interface Props {
+  team: { teamName: string; shortName?: string | null };
+  highlight?: boolean;
+  size?: 'sm' | 'md' | 'lg';
+}
+const { team, highlight = false, size = 'md' } = Astro.props;
+const sizes = {
+  sm: 'size-8 text-[11px]',
+  md: 'size-12 text-sm',
+  lg: 'size-16 text-lg sm:size-20 sm:text-xl',
+};
+---
+
+<span
+  class:list={[
+    'grid shrink-0 place-items-center rounded-full font-display font-bold tracking-wide',
+    sizes[size],
+    highlight ? 'bg-accent text-on-accent' : 'border border-line bg-surface-2 text-ink',
+  ]}
+  aria-hidden="true">{teamInitials(team)}</span
+>

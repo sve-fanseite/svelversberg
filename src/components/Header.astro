@@ -1,0 +1,90 @@
+---
+import Logo from './Logo.astro';
+import { SITE } from '../config.ts';
+import { NAV, url } from '../lib/url.ts';
+
+const current = Astro.url.pathname.replace(/\/+$/, '') || '/';
+const isActive = (href: string) => {
+  const full = url(href).replace(/\/+$/, '') || '/';
+  return href === '/' ? current === full : current.startsWith(full);
+};
+---
+
+<div class="border-b border-line bg-surface text-center text-xs font-medium text-muted">
+  <p class="mx-auto max-w-6xl px-4 py-1.5">{SITE.disclaimer}</p>
+</div>
+
+<header class="sticky top-0 z-40 border-b border-line bg-bg/90 backdrop-blur supports-[backdrop-filter]:bg-bg/75">
+  <div class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
+    <Logo />
+
+    <nav aria-label="Hauptnavigation" class="hidden md:block">
+      <ul class="flex items-center gap-1 text-sm font-medium">
+        {
+          NAV.map((item) => (
+            <li>
+              <a
+                href={url(item.href)}
+                aria-current={isActive(item.href) ? 'page' : undefined}
+                class:list={[
+                  'rounded-lg px-3 py-2 no-underline transition-colors hover:bg-surface-2',
+                  isActive(item.href) ? 'text-ink' : 'text-muted',
+                ]}
+              >
+                <span class:list={[isActive(item.href) && 'border-b-2 border-accent pb-0.5']}>{item.label}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <button
+      type="button"
+      id="theme-toggle"
+      class="grid size-10 place-items-center rounded-xl border border-line text-ink transition-colors hover:bg-surface-2"
+      aria-label="Farbmodus wechseln"
+      title="Hell / Dunkel"
+    >
+      <!-- Mond (im hellen Modus sichtbar) -->
+      <svg class="size-5 dark:hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg>
+      <!-- Sonne (im dunklen Modus sichtbar) -->
+      <svg class="hidden size-5 dark:block" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+    </button>
+  </div>
+
+  <!-- Mobil: waagerecht wischbare Navigation -->
+  <nav aria-label="Hauptnavigation (mobil)" class="md:hidden">
+    <ul class="flex gap-1 overflow-x-auto px-3 pb-2 text-sm font-medium [scrollbar-width:none]">
+      {
+        NAV.map((item) => (
+          <li class="shrink-0">
+            <a
+              href={url(item.href)}
+              aria-current={isActive(item.href) ? 'page' : undefined}
+              class:list={[
+                'block rounded-full px-3.5 py-1.5 no-underline',
+                isActive(item.href) ? 'bg-ink text-bg' : 'text-muted hover:bg-surface-2',
+              ]}
+            >
+              {item.label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </nav>
+</header>
+
+<script>
+  const btn = document.getElementById('theme-toggle');
+  btn?.addEventListener('click', () => {
+    const dark = !document.documentElement.classList.contains('dark');
+    document.documentElement.classList.toggle('dark', dark);
+    try {
+      localStorage.setItem('theme', dark ? 'dark' : 'light');
+    } catch {
+      /* Speichern nicht möglich – Modus gilt dann nur für diesen Seitenaufruf */
+    }
+  });
+</script>

@@ -1,0 +1,41 @@
+---
+import { SITE } from '../config.ts';
+import { url } from '../lib/url.ts';
+import { getSiteData } from '../lib/data.ts';
+import { formatStamp } from '../lib/time.ts';
+
+const data = await getSiteData();
+const year = new Date().getFullYear();
+---
+
+<footer class="mt-16 border-t border-line bg-surface">
+  <div class="mx-auto grid max-w-6xl gap-8 px-4 py-10 text-sm md:grid-cols-3">
+    <div class="space-y-2">
+      <p class="font-display text-lg font-bold uppercase">{SITE.name}</p>
+      <p class="text-muted">
+        <strong class="font-semibold text-ink">{SITE.disclaimer}.</strong> Eine private Seite von Fans für Fans.
+        Vereinsname und Marken gehören ihren jeweiligen Inhabern.
+      </p>
+    </div>
+
+    <div class="space-y-2 text-muted">
+      <p class="eyebrow">Datenquellen</p>
+      <p>
+        Spielplan, Ergebnisse und Tabelle:
+        <a class="text-accent-ink underline" href="https://www.openligadb.de" rel="noopener">OpenLigaDB</a>
+        (Community-Projekt, ohne Gewähr).
+      </p>
+      <p>News: Überschriften mit Link zur jeweiligen Originalquelle.</p>
+      <p>Seite erstellt: {formatStamp(new Date(data.generatedAt))}</p>
+    </div>
+
+    <nav aria-label="Rechtliches" class="space-y-2">
+      <p class="eyebrow">Rechtliches</p>
+      <ul class="space-y-1">
+        <li><a class="underline hover:text-accent-ink" href={url('/impressum')}>Impressum</a></li>
+        <li><a class="underline hover:text-accent-ink" href={url('/datenschutz')}>Datenschutz</a></li>
+      </ul>
+      <p class="pt-2 text-muted">© {year} {SITE.name}</p>
+    </nav>
+  </div>
+</footer>
