@@ -108,3 +108,14 @@ test('Elversberg in 2. Liga → wird dort gefunden', { timeout: 30_000 }, async 
   assert.equal(d.league.data.shortcut, 'bl2');
   assert.equal(d.league.data.name, '2. Bundesliga');
 });
+
+test('News sammeln sich über mehrere Builds an (ältere Meldungen bleiben)', { timeout: 30_000 }, async () => {
+  const rss = (n: number) => `<rss><channel><item><title>Meldung ${n}</title><link>https://example.org/${n}</link><pubDate>${new Date(Date.now() - (10 - n) * 3600_000).toUTCString()}</pubDate></item></channel></rss>`;
+  let feed = rss(1);
+  handler = (url) => (url.includes('feed') ? ok(feed) : liveHandler()(url));
+  await freshLoad();
+  feed = rss(2);
+  const d = await freshLoad();
+  assert.deepEqual(d.news.data.map((i: { title: string }) => i.title), ['Meldung 2', 'Meldung 1']);
+  assert.equal(d.news.stale, false);
+});

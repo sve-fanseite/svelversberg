@@ -225,11 +225,17 @@ async function load(): Promise<SiteData> {
     }
   }
   if (anyFeedOk) {
+    // Feeds liefern oft nur die letzten ~10 Meldungen. Damit die News-Seite mit der Zeit
+    // wächst, werden ältere Meldungen aus dem letzten Stand übernommen (nur aktive Quellen).
+    const active = new Set(NEWS_FEEDS.filter((f) => f.enabled).map((f) => f.id));
+    const previous = ((await getFallback())?.news?.data ?? []).filter((i) => active.has(i.sourceId));
+    const cutoff = Date.now() - 365 * 24 * 60 * 60 * 1000;
+    items.push(...previous.filter((i) => !i.date || new Date(i.date).getTime() >= cutoff));
     const seen = new Set<string>();
     const unique = items
       .filter((i) => (seen.has(i.link) ? false : (seen.add(i.link), true)))
       .sort((a, b) => (b.date ?? '').localeCompare(a.date ?? ''))
-      .slice(0, 60);
+      .slice(0, 150);
     news = fresh(unique);
   } else {
     news = asStale((await getFallback())?.news);
