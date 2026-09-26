@@ -1,0 +1,116 @@
+---
+// Vollständige Ligatabelle. Elversberg hervorgehoben, Form der letzten 5 Spiele.
+import TeamBadge from './TeamBadge.astro';
+import FormPills from './FormPills.astro';
+import { formFor, shortLabel, type OldbMatch, type TableMode, type TableRow } from '../lib/openligadb.ts';
+import type { ZoneKind } from '../config.ts';
+
+interface Props {
+  rows: TableRow[];
+  teamId: number | null;
+  matches: OldbMatch[];
+  mode: TableMode;
+  zones?: { from: number; to: number; label: string; kind: ZoneKind }[];
+  caption: string;
+}
+const { rows, teamId, matches, mode, zones = [], caption } = Astro.props;
+
+const zoneColor: Record<ZoneKind, string> = {
+  europa: 'var(--c-accent)',
+  aufstieg: 'var(--c-win)',
+  relegation: '#d08a1e',
+  abstieg: 'var(--c-loss)',
+};
+const zoneFor = (rank: number) => zones.find((z) => rank >= z.from && rank <= z.to);
+
+function formOf(id: number) {
+  const relevant = matches.filter((m) =>
+    mode === 'home' ? m.team1.teamId === id : mode === 'away' ? m.team2.teamId === id : true,
+  );
+  return formFor(relevant, id, 5);
+}
+const th = 'pb-2 font-medium';
+---
+
+<div class="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+  <table class="w-full min-w-[20rem] text-sm">
+    <caption class="sr-only">{caption}</caption>
+    <thead>
+      <tr class="text-left text-xs text-muted">
+        <th scope="col" class:list={[th, 'w-10 pl-3']}>#</th>
+        <th scope="col" class={th}>Verein</th>
+        <th scope="col" class:list={[th, 'text-right']} title="Spiele"><abbr title="Spiele" class="no-underline">Sp.</abbr></th>
+        <th scope="col" class:list={[th, 'hidden text-right md:table-cell']}><abbr title="Siege" class="no-underline">S</abbr></th>
+        <th scope="col" class:list={[th, 'hidden text-right md:table-cell']}><abbr title="Unentschieden" class="no-underline">U</abbr></th>
+        <th scope="col" class:list={[th, 'hidden text-right md:table-cell']}><abbr title="Niederlagen" class="no-underline">N</abbr></th>
+        <th scope="col" class:list={[th, 'hidden text-right sm:table-cell']}>Tore</th>
+        <th scope="col" class:list={[th, 'text-right']}><abbr title="Tordifferenz" class="no-underline">Diff.</abbr></th>
+        <th scope="col" class:list={[th, 'pr-3 text-right']}><abbr title="Punkte" class="no-underline">Pkt.</abbr></th>
+        <th scope="col" class:list={[th, 'hidden pl-4 lg:table-cell']}>Form</th>
+      </tr>
+    </thead>
+    <tbody>
+      {
+        rows.map((r) => {
+          const own = r.teamInfoId === teamId;
+          const zone = zoneFor(r.rank);
+          const form = formOf(r.teamInfoId);
+          const td = 'py-2.5 text-right tabular-nums';
+          return (
+            <tr
+              class:list={[own ? 'bg-accent font-semibold text-on-accent' : 'border-t border-line']}
+              aria-current={own ? 'true' : undefined}
+            >
+              <td
+                class:list={['py-2.5 pl-3 tabular-nums', own && 'rounded-l-lg']}
+                style={zone ? `box-shadow: inset 4px 0 0 ${zoneColor[zone.kind]}` : undefined}
+                title={zone?.label}
+              >
+                {r.rank}.
+              </td>
+              <td class="max-w-0 py-2 pr-2">
+                <span class="flex min-w-0 items-center gap-2.5">
+                  <TeamBadge team={{ teamId: r.teamInfoId, teamName: r.teamName, shortName: r.shortName }} onAccent={own} size="sm" />
+                  <span class="min-w-0">
+                    <span class="block truncate">
+                      <span class="sm:hidden">{shortLabel(r)}</span>
+                      <span class="hidden sm:inline">{r.teamName}</span>
+                    </span>
+                    <span class="mt-1 block lg:hidden">
+                      <FormPills form={form} variant="dots" />
+                    </span>
+                  </span>
+                </span>
+              </td>
+              <td class={td}>{r.matches}</td>
+              <td class:list={[td, 'hidden md:table-cell']}>{r.won}</td>
+              <td class:list={[td, 'hidden md:table-cell']}>{r.draw}</td>
+              <td class:list={[td, 'hidden md:table-cell']}>{r.lost}</td>
+              <td class:list={[td, 'hidden sm:table-cell']}>
+                {r.goals}:{r.opponentGoals}
+              </td>
+              <td class={td}>{r.goalDiff > 0 ? `+${r.goalDiff}` : r.goalDiff}</td>
+              <td class:list={[td, 'pr-3 font-bold', own && 'rounded-r-lg lg:rounded-none']}>{r.points}</td>
+              <td class:list={['hidden py-2.5 pl-4 lg:table-cell', own && 'rounded-r-lg pr-3']}>
+                <FormPills form={form} />
+              </td>
+            </tr>
+          );
+        })
+      }
+    </tbody>
+  </table>
+</div>
+
+{
+  zones.length > 0 && (
+    <ul class="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-xs text-muted">
+      {zones.map((z) => (
+        <li class="flex items-center gap-2">
+          <span class="inline-block h-3 w-1 rounded-full" style={`background:${zoneColor[z.kind]}`} aria-hidden="true"></span>
+          {z.from === z.to ? `Platz ${z.from}` : `Platz ${z.from}–${z.to}`}: {z.label}
+        </li>
+      ))}
+    </ul>
+  )
+}

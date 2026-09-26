@@ -169,3 +169,64 @@ export function teamInitials(t: { shortName?: string | null; teamName: string })
     .filter(Boolean);
   return (words[0] ?? base).slice(0, 3).toUpperCase();
 }
+
+// ---------------------------------------------------------------- Tabellen & Spieltage
+
+export type TableMode = 'all' | 'home' | 'away';
+
+/** Tabelle aus den Spielen berechnen (für Heim- und Auswärtstabelle). */
+export function computeTable(matches: OldbMatch[], mode: TableMode = 'all'): TableRow[] {
+  const rows = new Map<number, OldbTableRow>();
+  const ensure = (t: OldbTeam) => {
+    if (!rows.has(t.teamId)) {
+      rows.set(t.teamId, {
+        teamInfoId: t.teamId, teamName: t.teamName, shortName: t.shortName,
+        points: 0, matches: 0, won: 0, draw: 0, lost: 0, goals: 0, opponentGoals: 0, goalDiff: 0,
+      });
+    }
+    return rows.get(t.teamId)!;
+  };
+  const add = (r: OldbTableRow, own: number, opp: number) => {
+    r.matches++;
+    r.goals += own;
+    r.opponentGoals += opp;
+    r.goalDiff = r.goals - r.opponentGoals;
+    if (own > opp) { r.won++; r.points += 3; } else if (own === opp) { r.draw++; r.points += 1; } else r.lost++;
+  };
+  for (const m of matches) {
+    const home = ensure(m.team1);
+    const away = ensure(m.team2);
+    const s = m.matchIsFinished ? finalScore(m) : null;
+    if (!s) continue;
+    if (mode !== 'away') add(home, s.home, s.away);
+    if (mode !== 'home') add(away, s.away, s.home);
+  }
+  const sorted = [...rows.values()].sort(
+    (a, b) => b.points - a.points || b.goalDiff - a.goalDiff || b.goals - a.goals || a.teamName.localeCompare(b.teamName, 'de'),
+  );
+  return rankTable(sorted);
+}
+
+export interface Matchday {
+  order: number;
+  name: string;
+  matches: OldbMatch[];
+}
+
+export function groupByMatchday(matches: OldbMatch[]): Matchday[] {
+  const map = new Map<number, Matchday>();
+  for (const m of matches) {
+    const order = m.group?.groupOrderID ?? 0;
+    if (!map.has(order)) map.set(order, { order, name: m.group?.groupName ?? `${order}. Spieltag`, matches: [] });
+    map.get(order)!.matches.push(m);
+  }
+  const days = [...map.values()].sort((a, b) => a.order - b.order);
+  for (const d of days) d.matches.sort((a, b) => byKickoff(a, b) || a.team1.teamName.localeCompare(b.team1.teamName, 'de'));
+  return days;
+}
+
+/** Aktueller Spieltag: der früheste mit noch offenen Spielen, sonst der letzte. */
+export function currentMatchday(days: Matchday[]): number | null {
+  const open = days.find((d) => d.matches.some((m) => !m.matchIsFinished));
+  return open?.order ?? days[days.length - 1]?.order ?? null;
+}

@@ -1,0 +1,213 @@
+---
+import Base from '../layouts/Base.astro';
+import MatchRow from '../components/MatchRow.astro';
+import Notice from '../components/Notice.astro';
+import SourceNote from '../components/SourceNote.astro';
+import { getSiteData } from '../lib/data.ts';
+import { byKickoff, currentMatchday, findNextMatch, groupByMatchday, involves, outcomeFor } from '../lib/openligadb.ts';
+import { url } from '../lib/url.ts';
+
+const data = await getSiteData();
+const teamId = data.team?.data.teamId ?? null;
+const league = data.league?.data ?? null;
+const all = data.matches?.data ?? [];
+const own = teamId ? all.filter((m) => involves(m, teamId)).sort(byKickoff) : [];
+const next = teamId ? findNextMatch(all, teamId) : null;
+const days = groupByMatchday(all);
+const current = currentMatchday(days);
+
+const played = own.filter((m) => m.matchIsFinished);
+const tally = { S: 0, U: 0, N: 0 };
+for (const m of played) {
+  const o = teamId ? outcomeFor(m, teamId) : null;
+  if (o) tally[o]++;
+}
+
+const icsHttps = new URL(url('/spielplan.ics'), Astro.site).toString();
+const icsWebcal = icsHttps.replace(/^https?:/, 'webcal:');
+const title = league ? `Spielplan ${league.name} ${league.seasonLabel}` : 'Spielplan';
+const filterBtn =
+  'rounded-lg px-3 py-1.5 text-muted transition-colors hover:text-ink aria-pressed:bg-ink aria-pressed:text-bg';
+---
+
+<Base
+  title={title}
+  description={`Alle Spiele der SV 07 Elversberg in der Saison ${league?.seasonLabel ?? ''}: Termine, Anstoßzeiten, Ergebnisse, Filter nach Heim und Auswärts und Kalender-Abo.`}
+>
+  <div class="mx-auto max-w-4xl px-4 pt-10">
+    <p class="eyebrow">{league ? `${league.name} · Saison ${league.seasonLabel}` : 'Liga'}</p>
+    <h1 class="h-display mt-2 text-5xl sm:text-6xl">Spielplan & Ergebnisse</h1>
+    {
+      played.length > 0 && (
+        <p class="mt-3 text-lg text-muted">
+          Bisher {played.length} {played.length === 1 ? 'Spiel' : 'Spiele'}: <strong class="text-ink">{tally.S} Siege</strong>, {tally.U}{' '}
+          Unentschieden, {tally.N} Niederlagen.
+        </p>
+      )
+    }
+
+    <!-- Kalender-Abo -->
+    <section class="card mt-8 p-5 sm:p-6" aria-labelledby="cal-heading">
+      <h2 id="cal-heading" class="text-lg font-semibold">Spiele automatisch im Kalender</h2>
+      <p class="mt-1 text-sm text-muted">
+        Einmal abonnieren, dann erscheinen alle Elversberg-Spiele in deinem Handy-Kalender. Geänderte Anstoßzeiten und Ergebnisse
+        werden automatisch nachgetragen.
+      </p>
+      <div class="mt-4 flex flex-wrap gap-3">
+        <a href={icsWebcal} class="btn btn-accent">Kalender abonnieren</a>
+        <a href={icsHttps} class="btn btn-ghost" download="elversberg-spielplan.ics">Datei herunterladen</a>
+      </div>
+      <details class="mt-4 text-sm">
+        <summary class="cursor-pointer font-semibold">Google Kalender oder Outlook?</summary>
+        <p class="mt-2 text-muted">
+          Google Kalender (am Computer): links bei „Weitere Kalender“ auf das Plus → „Per URL“ → diese Adresse einfügen. Outlook:
+          „Kalender hinzufügen“ → „Aus dem Internet abonnieren“.
+        </p>
+        <div class="mt-3 flex gap-2">
+          <input
+            type="text"
+            readonly
+            value={icsHttps}
+            aria-label="Adresse des Kalender-Abos"
+            class="min-w-0 flex-1 rounded-lg border border-line bg-bg px-3 py-2 font-mono text-xs"
+            id="ics-url"
+          />
+          <button type="button" class="btn btn-ghost" data-copy="ics-url">Kopieren</button>
+        </div>
+      </details>
+    </section>
+
+    <!-- Elversberg-Spiele -->
+    <section class="mt-12" aria-labelledby="own-heading">
+      <div class="flex flex-wrap items-end justify-between gap-4">
+        <h2 id="own-heading" class="h-display text-3xl sm:text-4xl">Alle Spiele der SVE</h2>
+        {next && <a href="#naechstes" class="text-sm font-semibold text-accent-ink underline">Zum nächsten Spiel</a>}
+      </div>
+
+      <div class="mt-4 flex flex-wrap gap-2 text-sm font-semibold" data-filters hidden>
+        <div class="flex gap-1 rounded-xl border border-line bg-surface p-1" role="group" aria-label="Heim oder auswärts">
+          <button type="button" class={filterBtn} data-venue="alle" aria-pressed="true">Alle</button>
+          <button type="button" class={filterBtn} data-venue="heim" aria-pressed="false">Heim</button>
+          <button type="button" class={filterBtn} data-venue="auswaerts" aria-pressed="false">Auswärts</button>
+        </div>
+        <div class="flex gap-1 rounded-xl border border-line bg-surface p-1" role="group" aria-label="Gespielt oder kommend">
+          <button type="button" class={filterBtn} data-status="alle" aria-pressed="true">Alle</button>
+          <button type="button" class={filterBtn} data-status="gespielt" aria-pressed="false">Gespielt</button>
+          <button type="button" class={filterBtn} data-status="kommend" aria-pressed="false">Kommend</button>
+        </div>
+      </div>
+
+      {
+        own.length > 0 ? (
+          <ol class="mt-4 space-y-2" data-own-list>
+            {own.map((m) => (
+              <li
+                data-venue={m.team1.teamId === teamId ? 'heim' : 'auswaerts'}
+                data-status={m.matchIsFinished ? 'gespielt' : 'kommend'}
+                id={next && m.matchID === next.matchID ? 'naechstes' : undefined}
+                class="scroll-mt-32"
+              >
+                <MatchRow match={m} teamId={teamId} showMatchday highlightNext={next?.matchID === m.matchID} />
+              </li>
+            ))}
+          </ol>
+        ) : (
+          <div class="mt-4">
+            <Notice />
+          </div>
+        )
+      }
+      <p class="mt-3 hidden text-sm text-muted" data-empty>Für diese Auswahl gibt es keine Spiele.</p>
+      {data.matches && <SourceNote source="OpenLigaDB" asOf={data.matches.asOf} stale={data.matches.stale} />}
+      <p class="mt-2 text-xs text-muted">
+        Anstoßzeiten späterer Spieltage legt die DFL erst nach und nach genau fest. Bis dahin können sie sich noch ändern.
+      </p>
+    </section>
+
+    <!-- Alle Spieltage der Liga -->
+    {
+      days.length > 0 && (
+        <section class="mt-14" aria-labelledby="days-heading">
+          <h2 id="days-heading" class="h-display text-3xl sm:text-4xl">
+            Alle Spieltage{league && ` der ${league.name}`}
+          </h2>
+          <p class="mt-2 text-sm text-muted">Tippe auf einen Spieltag, um alle Partien zu sehen.</p>
+          <div class="mt-4 space-y-2">
+            {days.map((d) => {
+              const finished = d.matches.filter((m) => m.matchIsFinished).length;
+              return (
+                <details class="card group overflow-hidden" open={d.order === current} id={`spieltag-${d.order}`}>
+                  <summary class="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 font-semibold [&::-webkit-details-marker]:hidden">
+                    <span>
+                      {d.name}
+                      {d.order === current && (
+                        <span class="ml-2 rounded-full bg-accent px-2 py-px text-xs font-semibold text-on-accent">aktuell</span>
+                      )}
+                    </span>
+                    <span class="flex items-center gap-3 text-xs font-normal text-muted">
+                      {finished === d.matches.length ? 'beendet' : finished > 0 ? `${finished}/${d.matches.length} gespielt` : 'offen'}
+                      <svg class="size-4 transition-transform group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <path d="m6 9 6 6 6-6" />
+                      </svg>
+                    </span>
+                  </summary>
+                  <ol class="space-y-1 border-t border-line p-2">
+                    {d.matches.map((m) => (
+                      <li>
+                        <MatchRow match={m} teamId={teamId} />
+                      </li>
+                    ))}
+                  </ol>
+                </details>
+              );
+            })}
+          </div>
+        </section>
+      )
+    }
+  </div>
+</Base>
+
+<script>
+  // Filter Heim/Auswärts und Gespielt/Kommend. Ohne JavaScript sind einfach alle Spiele sichtbar.
+  const bar = document.querySelector<HTMLElement>('[data-filters]');
+  const list = document.querySelector<HTMLElement>('[data-own-list]');
+  const empty = document.querySelector<HTMLElement>('[data-empty]');
+  if (bar && list) {
+    bar.hidden = false;
+    let venue = 'alle';
+    let status = 'alle';
+    const apply = () => {
+      let visible = 0;
+      for (const li of list.querySelectorAll<HTMLElement>('li')) {
+        const show = (venue === 'alle' || li.dataset.venue === venue) && (status === 'alle' || li.dataset.status === status);
+        li.hidden = !show;
+        if (show) visible++;
+      }
+      empty?.classList.toggle('hidden', visible > 0);
+    };
+    for (const btn of bar.querySelectorAll<HTMLButtonElement>('button')) {
+      btn.addEventListener('click', () => {
+        const group = btn.dataset.venue ? 'venue' : 'status';
+        for (const b of btn.parentElement!.querySelectorAll('button')) b.setAttribute('aria-pressed', String(b === btn));
+        if (group === 'venue') venue = btn.dataset.venue!;
+        else status = btn.dataset.status!;
+        apply();
+      });
+    }
+  }
+
+  // Abo-Adresse kopieren
+  for (const btn of document.querySelectorAll<HTMLButtonElement>('[data-copy]')) {
+    btn.addEventListener('click', async () => {
+      const input = document.getElementById(btn.dataset.copy!) as HTMLInputElement | null;
+      if (!input) return;
+      try {
+        await navigator.clipboard.writeText(input.value);
+        btn.textContent = 'Kopiert';
+      } catch {
+        input.select();
+      }
+    });
+  }
+</script>

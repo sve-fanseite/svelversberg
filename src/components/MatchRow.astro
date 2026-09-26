@@ -1,0 +1,80 @@
+---
+// Eine Spielzeile: Heim – Ergebnis/Anstoß – Gast.
+import TeamBadge from './TeamBadge.astro';
+import { finalScore, kickoff, outcomeFor, shortLabel, type OldbMatch } from '../lib/openligadb.ts';
+import { formatDateShort, formatTime } from '../lib/time.ts';
+
+interface Props {
+  match: OldbMatch;
+  teamId: number | null;
+  showMatchday?: boolean;
+  showDate?: boolean;
+  highlightNext?: boolean;
+}
+const { match: m, teamId, showMatchday = false, showDate = true, highlightNext = false } = Astro.props;
+const ko = kickoff(m);
+const score = m.matchIsFinished ? finalScore(m) : null;
+const involved = teamId != null && (m.team1.teamId === teamId || m.team2.teamId === teamId);
+const outcome = involved && teamId != null ? outcomeFor(m, teamId) : null;
+const outcomeText = { S: 'Sieg', U: 'Unentschieden', N: 'Niederlage' } as const;
+const outcomeCls = { S: 'bg-win', U: 'bg-draw', N: 'bg-loss' } as const;
+const live = !m.matchIsFinished && ko.getTime() < Date.now();
+---
+
+<div
+  class:list={[
+    'rounded-xl px-3 py-3 sm:px-4',
+    highlightNext ? 'border-2 border-accent bg-surface' : involved ? 'bg-surface-2/60' : '',
+  ]}
+>
+  {
+    (showMatchday || showDate) && (
+      <p class="mb-2 flex flex-wrap items-center gap-x-2 text-xs text-muted">
+        {showMatchday && m.group && <span class="font-semibold text-ink">{m.group.groupName}</span>}
+        {showDate && (
+          <time datetime={ko.toISOString()}>
+            {formatDateShort(ko)}, {formatTime(ko)}
+          </time>
+        )}
+        {involved && teamId != null && (
+          <span class="rounded-full border border-line px-2 py-px">{m.team1.teamId === teamId ? 'Heim' : 'Auswärts'}</span>
+        )}
+        {highlightNext && <span class="rounded-full bg-accent px-2 py-px font-semibold text-on-accent">Nächstes Spiel</span>}
+      </p>
+    )
+  }
+  <div class="grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-4">
+    <span class="flex min-w-0 items-center justify-end gap-2 text-right">
+      <span class:list={['truncate', m.team1.teamId === teamId && 'font-bold']}>
+        <span class="sm:hidden">{shortLabel(m.team1)}</span><span class="hidden sm:inline">{m.team1.teamName}</span>
+      </span>
+      <TeamBadge team={m.team1} highlight={m.team1.teamId === teamId} size="sm" />
+    </span>
+
+    <span class="flex min-w-16 flex-col items-center">
+      {
+        score ? (
+          <span class="font-display text-2xl font-bold tabular-nums leading-none" aria-label={`${score.home} zu ${score.away}`}>
+            {score.home}:{score.away}
+          </span>
+        ) : live ? (
+          <span class="rounded-md bg-loss px-2 py-0.5 text-xs font-bold uppercase text-white">läuft</span>
+        ) : (
+          <span class="rounded-md border border-line px-2 py-0.5 text-sm font-semibold tabular-nums">{formatTime(ko).replace(' Uhr', '')}</span>
+        )
+      }
+      {
+        outcome && (
+          <span class:list={['mt-1 rounded px-1.5 text-[10px] font-bold uppercase text-white', outcomeCls[outcome]]}>{outcomeText[outcome]}</span>
+        )
+      }
+    </span>
+
+    <span class="flex min-w-0 items-center gap-2">
+      <TeamBadge team={m.team2} highlight={m.team2.teamId === teamId} size="sm" />
+      <span class:list={['truncate', m.team2.teamId === teamId && 'font-bold']}>
+        <span class="sm:hidden">{shortLabel(m.team2)}</span><span class="hidden sm:inline">{m.team2.teamName}</span>
+      </span>
+    </span>
+  </div>
+</div>

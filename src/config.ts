@@ -42,3 +42,27 @@ export const NEWS_FEEDS = [
 
 // Wie viele News-Karten auf der Startseite erscheinen.
 export const HOME_NEWS_COUNT = 6;
+
+// Tabellenzonen je Liga (Regelplätze). Verschiebungen, z. B. durch den DFB-Pokal-Sieger,
+// sind möglich – deshalb steht auf der Seite ein Hinweis.
+export type ZoneKind = 'europa' | 'aufstieg' | 'relegation' | 'abstieg';
+export const TABLE_ZONES: Record<string, { from: number; to: number; label: string; kind: ZoneKind }[]> = {
+  bl1: [
+    { from: 1, to: 4, label: 'Champions League', kind: 'europa' },
+    { from: 5, to: 5, label: 'Europa League', kind: 'europa' },
+    { from: 6, to: 6, label: 'Conference League (Quali)', kind: 'europa' },
+    { from: 16, to: 16, label: 'Relegation', kind: 'relegation' },
+    { from: 17, to: 18, label: 'Abstieg', kind: 'abstieg' },
+  ],
+  bl2: [
+    { from: 1, to: 2, label: 'Aufstieg', kind: 'aufstieg' },
+    { from: 3, to: 3, label: 'Relegation (Aufstieg)', kind: 'relegation' },
+    { from: 16, to: 16, label: 'Relegation (Abstieg)', kind: 'relegation' },
+    { from: 17, to: 18, label: 'Abstieg', kind: 'abstieg' },
+  ],
+  bl3: [
+    { from: 1, to: 2, label: 'Aufstieg', kind: 'aufstieg' },
+    { from: 3, to: 3, label: 'Relegation (Aufstieg)', kind: 'relegation' },
+    { from: 17, to: 20, label: 'Abstieg', kind: 'abstieg' },
+  ],
+};

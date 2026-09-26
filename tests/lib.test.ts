@@ -147,3 +147,27 @@ test('Vereinsfarben: gültige Hex-Werte und Schrift gut lesbar (Kontrast ≥ 4,5
     assert.ok(contrast(v.bg, v.fg) >= 4.5, `${v.name}: Kontrast ${contrast(v.bg, v.fg).toFixed(2)}`);
   }
 });
+
+test('Heim-, Auswärts- und Gesamttabelle aus Spielen', async () => {
+  const { computeTable } = await import('../src/lib/openligadb.ts');
+  const all = computeTable(matches, 'all');
+  const elv = all.find((r) => r.teamInfoId === 198)!;
+  // S 2:1 (H), U 1:1 (A), N 0:3 (H), U 0:0 (A) → 5 Punkte, 3:5 Tore
+  assert.deepEqual([elv.points, elv.matches, elv.won, elv.draw, elv.lost, elv.goals, elv.opponentGoals, elv.goalDiff], [5, 4, 1, 2, 1, 3, 5, -2]);
+  const home = computeTable(matches, 'home').find((r) => r.teamInfoId === 198)!;
+  assert.deepEqual([home.points, home.matches, home.goals, home.opponentGoals], [3, 2, 2, 4]);
+  const away = computeTable(matches, 'away').find((r) => r.teamInfoId === 198)!;
+  assert.deepEqual([away.points, away.matches], [2, 2]);
+  // B: 1:1 (H) + 3:0 (A) = 4 Pkt, vor Elversberg? Nein: Elversberg 5 > B 4
+  assert.equal(all[0].teamInfoId, 198);
+  assert.equal(all.length, 3, 'alle Teams tauchen auf, auch ohne Spiele im Modus');
+});
+
+test('Spieltage gruppieren und aktuellen Spieltag finden', async () => {
+  const { groupByMatchday, currentMatchday } = await import('../src/lib/openligadb.ts');
+  const days = groupByMatchday([...matches].reverse());
+  assert.deepEqual(days.map((d) => d.order), [1, 2, 3, 4, 5, 6]);
+  assert.equal(currentMatchday(days), 5);
+  const allDone = groupByMatchday(matches.slice(0, 4));
+  assert.equal(currentMatchday(allDone), 4);
+});
