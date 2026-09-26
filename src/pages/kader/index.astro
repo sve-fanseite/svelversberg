@@ -1,0 +1,100 @@
+---
+import Base from '../../layouts/Base.astro';
+import PlayerAvatar from '../../components/PlayerAvatar.astro';
+import { getSquadData } from '../../lib/squad-data.ts';
+import { getSiteData } from '../../lib/data.ts';
+import { ageOn, POSITIONS, POSITION_PLURAL } from '../../lib/kader.ts';
+import { url } from '../../lib/url.ts';
+import { formatDay } from '../../lib/time.ts';
+
+const { squad, goalsOf } = await getSquadData();
+const data = await getSiteData();
+const league = data.league?.data ?? null;
+const ages = squad.spieler.map((p) => ageOn(p.geburtsdatum)).filter((a): a is number => a != null);
+const avgAge = ages.length ? (ages.reduce((a, b) => a + b, 0) / ages.length).toLocaleString('de-DE', { maximumFractionDigits: 1 }) : null;
+const groups = POSITIONS.map((pos) => ({ pos, players: squad.spieler.filter((p) => p.position === pos) })).filter((g) => g.players.length);
+---
+
+<Base title="Kader" description="Der Kader der SV 07 Elversberg: alle Spieler nach Position mit Rückennummer und Alter, dazu das Trainerteam.">
+  <div class="mx-auto max-w-6xl px-4 pt-10">
+    <p class="eyebrow">{league ? `Saison ${league.seasonLabel}` : 'Profis'}</p>
+    <h1 class="h-display mt-2 text-5xl sm:text-6xl">Kader</h1>
+    <p class="mt-3 text-lg text-muted">
+      {squad.spieler.length} Spieler
+      {avgAge && (
+        <>
+          {' '}· Durchschnittsalter {avgAge} Jahre
+          {ages.length < squad.spieler.length && <span class="text-sm"> (von {ages.length} Spielern mit bekanntem Geburtsdatum)</span>}
+        </>
+      )}
+    </p>
+
+    <nav aria-label="Positionen" class="mt-6 flex flex-wrap gap-2 text-sm font-semibold">
+      {
+        groups.map((g) => (
+          <a href={`#${g.pos.toLowerCase()}`} class="rounded-full border border-line px-3.5 py-1.5 no-underline hover:bg-surface-2">
+            {POSITION_PLURAL[g.pos]} <span class="text-muted">{g.players.length}</span>
+          </a>
+        ))
+      }
+      <a href="#trainerteam" class="rounded-full border border-line px-3.5 py-1.5 no-underline hover:bg-surface-2">Trainerteam</a>
+    </nav>
+
+    {
+      groups.map((g) => (
+        <section id={g.pos.toLowerCase()} class="mt-12 scroll-mt-32" aria-labelledby={`h-${g.pos}`}>
+          <h2 id={`h-${g.pos}`} class="h-display text-3xl sm:text-4xl">
+            {POSITION_PLURAL[g.pos]}
+          </h2>
+          <ul class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            {g.players.map((p) => {
+              const age = ageOn(p.geburtsdatum);
+              const goals = goalsOf(p);
+              return (
+                <li>
+                  <a href={url(`/kader/${p.slug}`)} class="card group block h-full p-3 no-underline transition-colors hover:border-accent">
+                    <PlayerAvatar nummer={p.nummer} />
+                    <p class="mt-3 font-semibold leading-tight group-hover:underline">{p.name}</p>
+                    <p class="mt-1 text-xs text-muted">
+                      {p.position}
+                      {age != null && ` · ${age} Jahre`}
+                      {goals > 0 && ` · ${goals} ${goals === 1 ? 'Tor' : 'Tore'}`}
+                    </p>
+                  </a>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      ))
+    }
+
+    <section id="trainerteam" class="mt-14 scroll-mt-32" aria-labelledby="h-staff">
+      <h2 id="h-staff" class="h-display text-3xl sm:text-4xl">Trainerteam</h2>
+      <ul class="card mt-4 divide-y divide-line">
+        {
+          squad.trainerteam.map((s) => (
+            <li class="flex items-center justify-between gap-4 px-4 py-3 sm:px-5">
+              <span class="font-semibold">{s.name}</span>
+              <span class="text-sm text-muted">{s.funktion}</span>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <p class="mt-6 text-xs text-muted">
+      Angaben laut offizieller Vereinsseite{squad.quelle && (
+        <>
+          {' '}(
+          <a href={squad.quelle} rel="noopener" class="underline">
+            sv07elversberg.de
+          </a>
+          )
+        </>
+      )}
+      {squad.stand && `, Stand ${formatDay(new Date(squad.stand))}`}. Fehlende Angaben ergänzen wir, sobald sie verfügbar sind. Keine Spielerfotos –
+      die Bildrechte liegen beim Verein.
+    </p>
+  </div>
+</Base>

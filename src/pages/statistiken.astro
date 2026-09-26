@@ -7,6 +7,8 @@ import { computeTable, finalScore, kickoff, shortLabel, type OldbMatch } from '.
 import { PERIOD_LABELS, teamStats } from '../lib/stats.ts';
 import { formatDay } from '../lib/time.ts';
 import namen from '../data/torschuetzen-namen.json';
+import { getSquadData } from '../lib/squad-data.ts';
+import { url } from '../lib/url.ts';
 
 const data = await getSiteData();
 const teamId = data.team?.data.teamId ?? null;
@@ -30,9 +32,10 @@ function describe(m: OldbMatch) {
   const opp = home ? m.team2 : m.team1;
   return `${home ? s.home : s.away}:${home ? s.away : s.home} ${home ? 'gegen' : 'bei'} ${shortLabel(opp)}`;
 }
-const maxScorer = stats?.scorers[0]?.goals ?? 0;
+const { scorers } = await getSquadData();
+const maxScorer = scorers[0]?.goals ?? 0;
 const maxPeriod = stats ? Math.max(1, ...stats.goalsForByPeriod, ...stats.goalsAgainstByPeriod) : 1;
-const scorerGoals = stats?.scorers.reduce((a, s) => a + s.goals, 0) ?? 0;
+const scorerGoals = scorers.reduce((a, s) => a + s.goals, 0);
 ---
 
 <Base
@@ -130,15 +133,23 @@ const scorerGoals = stats?.scorers.reduce((a, s) => a + s.goals, 0) ?? 0;
           </section>
           <section class="mt-12" aria-labelledby="ts-heading">
             <h2 id="ts-heading" class="h-display text-3xl sm:text-4xl">Torschützen</h2>
-            {stats.scorers.length > 0 ? (
+            {scorers.length > 0 ? (
               <ol class="card mt-4 divide-y divide-line">
-                {stats.scorers.map((s, i) => (
+                {scorers.map((s, i) => (
                   <li class="flex items-center gap-3 px-4 py-3 sm:px-5">
                     <span class="w-6 shrink-0 text-right text-sm text-muted tabular-nums">
-                      {i > 0 && stats.scorers[i - 1].goals === s.goals ? '' : `${i + 1}.`}
+                      {i > 0 && scorers[i - 1].goals === s.goals ? '' : `${i + 1}.`}
                     </span>
                     <span class="min-w-0 flex-1">
-                      <span class="block truncate font-semibold">{s.name}</span>
+                      <span class="block truncate font-semibold">
+                        {s.player ? (
+                          <a href={url(`/kader/${s.player.slug}`)} class="hover:underline">
+                            {s.name} <span class="font-normal text-muted">#{s.player.nummer}</span>
+                          </a>
+                        ) : (
+                          s.name
+                        )}
+                      </span>
                       <span class="mt-1 block h-1.5 rounded-full bg-surface-2" aria-hidden="true">
                         <span class="block h-full rounded-full bg-accent" style={`width:${(s.goals / maxScorer) * 100}%`}></span>
                       </span>

@@ -1,0 +1,109 @@
+---
+import Base from '../../layouts/Base.astro';
+import PlayerAvatar from '../../components/PlayerAvatar.astro';
+import { getSquadData } from '../../lib/squad-data.ts';
+import { ageOn, type Player } from '../../lib/kader.ts';
+import { url } from '../../lib/url.ts';
+import { formatDateLong } from '../../lib/time.ts';
+import { getSiteData } from '../../lib/data.ts';
+
+export async function getStaticPaths() {
+  const { squad } = await getSquadData();
+  return squad.spieler.map((p, i, all) => ({
+    params: { slug: p.slug },
+    props: { player: p, prev: all[i - 1] ?? null, next: all[i + 1] ?? null },
+  }));
+}
+
+interface Props {
+  player: Player;
+  prev: Player | null;
+  next: Player | null;
+}
+const { player: p, prev, next } = Astro.props;
+const { goalsOf, scorers, stats } = await getSquadData();
+const data = await getSiteData();
+const age = ageOn(p.geburtsdatum);
+const goals = goalsOf(p);
+const penalties = scorers.find((s) => s.player?.slug === p.slug)?.penalties ?? 0;
+const incomplete = (stats?.incompleteMatches.length ?? 0) > 0;
+const seasonLabel = data.league?.data.seasonLabel;
+const leagueName = data.league?.data.name ?? 'Liga';
+
+const facts: [string, string][] = [
+  ['Rückennummer', String(p.nummer)],
+  ['Position', p.position],
+];
+if (p.geburtsdatum) facts.push(['Alter', `${age} Jahre (geboren am ${formatDateLong(new Date(`${p.geburtsdatum}T12:00:00Z`)).replace(/^\w+, /, '')})`]);
+if (p.nationalitaet) facts.push(['Nationalität', p.nationalitaet]);
+facts.push([`Tore ${leagueName}${seasonLabel ? ` ${seasonLabel}` : ''}`, `${goals}${penalties ? ` (davon ${penalties} Elfmeter)` : ''}${incomplete && goals >= 0 ? '*' : ''}`]);
+---
+
+<Base
+  title={`${p.name} (#${p.nummer})`}
+  description={`${p.name}, Nummer ${p.nummer}, ${p.position} bei der SV 07 Elversberg${age != null ? `, ${age} Jahre` : ''}.`}
+>
+  <div class="mx-auto max-w-4xl px-4 pt-10">
+    <a href={url('/kader')} class="text-sm font-semibold text-accent-ink underline">← Zum Kader</a>
+
+    <div class="mt-6 grid gap-8 sm:grid-cols-[minmax(0,18rem)_1fr] sm:items-end">
+      <PlayerAvatar nummer={p.nummer} size="lg" />
+      <div>
+        <p class="eyebrow">{p.position}</p>
+        <h1 class="h-display mt-2 text-5xl sm:text-7xl">{p.name}</h1>
+      </div>
+    </div>
+
+    <dl class="card mt-8 divide-y divide-line">
+      {
+        facts.map(([k, v]) => (
+          <div class="flex flex-wrap justify-between gap-x-6 gap-y-1 px-4 py-3 sm:px-5">
+            <dt class="text-muted">{k}</dt>
+            <dd class="font-semibold">{v}</dd>
+          </div>
+        ))
+      }
+    </dl>
+    {
+      incomplete && (
+        <p class="mt-2 text-xs text-muted">
+          * Torschützen trägt die OpenLigaDB-Community ein; bei einzelnen Spielen fehlen noch Angaben.
+        </p>
+      )
+    }
+
+    {
+      p.profil && (
+        <a href={p.profil} rel="noopener" target="_blank" class="btn btn-ghost mt-6">
+          Offizielles Spielerprofil <span aria-hidden="true">↗</span>
+          <span class="sr-only">(öffnet sv07elversberg.de in neuem Tab)</span>
+        </a>
+      )
+    }
+
+    <nav aria-label="Weitere Spieler" class="mt-12 grid grid-cols-2 gap-3 text-sm">
+      {
+        prev ? (
+          <a href={url(`/kader/${prev.slug}`)} class="card p-4 no-underline hover:border-accent">
+            <span class="text-xs text-muted">← Vorheriger</span>
+            <span class="mt-1 block font-semibold">
+              #{prev.nummer} {prev.name}
+            </span>
+          </a>
+        ) : (
+          <span></span>
+        )
+      }
+      {
+        next && (
+          <a href={url(`/kader/${next.slug}`)} class="card p-4 text-right no-underline hover:border-accent">
+            <span class="text-xs text-muted">Nächster →</span>
+            <span class="mt-1 block font-semibold">
+              #{next.nummer} {next.name}
+            </span>
+          </a>
+        )
+      }
+    </nav>
+  </div>
+</Base>

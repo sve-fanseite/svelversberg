@@ -17,7 +17,7 @@ export default defineConfig({
     sitemap({
       // Platzhalter-Seiten (noch "In Arbeit") und 404 nicht in die Sitemap
       filter: (page) =>
-        !/\/(404|kader|verein|impressum|datenschutz)\/?$/.test(page),
+        !/\/(404|verein|impressum|datenschutz)\/?$/.test(page),
     }),
   ],
   vite: {

@@ -1,0 +1,48 @@
+{
+  "_hinweis": "Kader der Profimannschaft. Diese Datei pflegst du selbst: Spieler hinzufügen, entfernen oder ändern. Pflichtfelder: nummer, name, position (Tor, Abwehr, Mittelfeld oder Sturm). Optional: geburtsdatum (JJJJ-MM-TT), nationalitaet, profil (Link zum offiziellen Spielerprofil). Unbekannte Angaben einfach auf null lassen – bitte nichts raten.",
+  "stand": "2026-09-26",
+  "quelle": "https://sv07elversberg.de/kader/",
+  "spieler": [
+    { "nummer": 1,  "name": "Frank Lehmann",         "position": "Tor",        "geburtsdatum": "1989-04-29", "nationalitaet": "Deutsch",     "profil": "https://sv07elversberg.de/player/frank-lehmann/" },
+    { "nummer": 12, "name": "Elias Etringer",        "position": "Tor",        "geburtsdatum": "2007-11-24", "nationalitaet": null,          "profil": "https://sv07elversberg.de/player/elias-etringer-2/" },
+    { "nummer": 20, "name": "Nicolas Kristof",       "position": "Tor",        "geburtsdatum": "1999-12-20", "nationalitaet": "Deutsch",     "profil": "https://sv07elversberg.de/player/nicolas-kristof/" },
+    { "nummer": 28, "name": "Tim Boss",              "position": "Tor",        "geburtsdatum": null,         "nationalitaet": null,          "profil": "https://sv07elversberg.de/player/tim-boss/" },
+
+    { "nummer": 2,  "name": "Nicholas Mickelson",    "position": "Abwehr",     "geburtsdatum": "1999-07-24", "nationalitaet": null,          "profil": "https://sv07elversberg.de/player/nicholas-mickelson/" },
+    { "nummer": 3,  "name": "Florian Le Joncour",    "position": "Abwehr",     "geburtsdatum": "1995-02-03", "nationalitaet": "Französisch", "profil": "https://sv07elversberg.de/player/florian-le-joncour/" },
+    { "nummer": 4,  "name": "Luis Seifert",          "position": "Abwehr",     "geburtsdatum": "2004-01-26", "nationalitaet": null,          "profil": "https://sv07elversberg.de/player/luis-seifert/" },
+    { "nummer": 19, "name": "Lukas Pinckert",        "position": "Abwehr",     "geburtsdatum": "2000-01-22", "nationalitaet": "Deutsch",     "profil": "https://sv07elversberg.de/player/lukas-pinckert/" },
+    { "nummer": 21, "name": "Lasse Günther",         "position": "Abwehr",     "geburtsdatum": "2003-03-21", "nationalitaet": null,          "profil": "https://sv07elversberg.de/player/lasse-guenther/" },
+    { "nummer": 26, "name": "Luca Sirch",            "position": "Abwehr",     "geburtsdatum": "1999-06-14", "nationalitaet": null,          "profil": "https://sv07elversberg.de/player/luca-sirch/" },
+    { "nummer": 30, "name": "Jan Gyamerah",          "position": "Abwehr",     "geburtsdatum": null,         "nationalitaet": null,          "profil": "https://sv07elversberg.de/player/jan/" },
+    { "nummer": 31, "name": "Maximilian Rohr",       "position": "Abwehr",     "geburtsdatum": null,         "nationalitaet": null,          "profil": "https://sv07elversberg.de/player/maximilian-rohr/" },
+    { "nummer": 43, "name": "Felix Keidel",          "position": "Abwehr",     "geburtsdatum": "2003-06-14", "nationalitaet": null,          "profil": "https://sv07elversberg.de/player/felix-keidel/" },
+
+    { "nummer": 6,  "name": "Amara Condé",           "position": "Mittelfeld", "geburtsdatum": "1997-01-06", "nationalitaet": null,          "profil": "https://sv07elversberg.de/player/amara-conde/" },
+    { "nummer": 7,  "name": "Maurice Krattenmacher", "position": "Mittelfeld", "geburtsdatum": null,         "nationalitaet": null,          "profil": "https://sv07elversberg.de/player/maurice-krattenmacher/" },
+    { "nummer": 8,  "name": "Lukasz Poreba",         "position": "Mittelfeld", "geburtsdatum": "2000-03-13", "nationalitaet": null,          "profil": "https://sv07elversberg.de/player/lukasz-poreba/" },
+    { "nummer": 10, "name": "Noah Darvich",          "position": "Mittelfeld", "geburtsdatum": "2006-09-25", "nationalitaet": null,          "profil": "https://sv07elversberg.de/player/noah-darvich/" },
+    { "nummer": 15, "name": "Raif Adam",             "position": "Mittelfeld", "geburtsdatum": "2005-09-07", "nationalitaet": null,          "profil": "https://sv07elversberg.de/player/raif-adam/" },
+    { "nummer": 17, "name": "Frederik Schmahl",      "position": "Mittelfeld", "geburtsdatum": null,         "nationalitaet": null,          "profil": "https://sv07elversberg.de/player/frederik-schmahl/" },
+    { "nummer": 25, "name": "Lukas Petkov",          "position": "Mittelfeld", "geburtsdatum": "2000-11-01", "nationalitaet": null,          "profil": "https://sv07elversberg.de/player/lukas-petkov/" },
+    { "nummer": 29, "name": "Tom Zimmerschied",      "position": "Mittelfeld", "geburtsdatum": "1998-09-22", "nationalitaet": null,          "profil": "https://sv07elversberg.de/player/tom-zimmerschied/" },
+    { "nummer": 39, "name": "Cole Campbell",         "position": "Mittelfeld", "geburtsdatum": "2006-02-20", "nationalitaet": null,          "profil": "https://sv07elversberg.de/player/cole-campbell/" },
+    { "nummer": 40, "name": "Francis Onyeka",        "position": "Mittelfeld", "geburtsdatum": "2007-04-29", "nationalitaet": null,          "profil": "https://sv07elversberg.de/player/francis-onyeka/" },
+
+    { "nummer": 9,  "name": "Noel Futkeu",           "position": "Sturm",      "geburtsdatum": "2002-12-06", "nationalitaet": null,          "profil": "https://sv07elversberg.de/player/noel-futkeu/" },
+    { "nummer": 16, "name": "Luca Pfeiffer",         "position": "Sturm",      "geburtsdatum": "1996-08-20", "nationalitaet": null,          "profil": "https://sv07elversberg.de/player/luca-pfeiffer/" },
+    { "nummer": 24, "name": "Luca Schnellbacher",    "position": "Sturm",      "geburtsdatum": "1994-05-06", "nationalitaet": "Deutsch",     "profil": "https://sv07elversberg.de/player/luca-schnellbacher/" },
+    { "nummer": 42, "name": "David Ngabi Mokwa",     "position": "Sturm",      "geburtsdatum": "2004-05-03", "nationalitaet": "Französisch", "profil": "https://sv07elversberg.de/player/david-ngabi-mokwa/" }
+  ],
+  "trainerteam": [
+    { "name": "Vincent Wagner",     "funktion": "Trainer" },
+    { "name": "Mike Frantz",        "funktion": "Co-Trainer" },
+    { "name": "Patrick Henle",      "funktion": "Co-Trainer" },
+    { "name": "Pascal Bieler",      "funktion": "Co-Trainer" },
+    { "name": "Sascha Purket",      "funktion": "Torwart-Trainer" },
+    { "name": "Tobias Tröß",        "funktion": "Athletik-Trainer" },
+    { "name": "Michael Schwerhoff", "funktion": "Reha-Trainer" },
+    { "name": "Franz Dietrich",     "funktion": "Videoanalyst" },
+    { "name": "Marko Rieke",        "funktion": "Videoanalyst" }
+  ]
+}
